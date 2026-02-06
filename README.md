@@ -48,3 +48,4 @@ C:\Users\mylov\projects\stores\frontend
 
 Then run `npm install` and `npm run dev` from inside `frontend`.
 # jib
+# jib
