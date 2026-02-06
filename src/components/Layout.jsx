@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { Outlet, Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
@@ -10,20 +11,39 @@ export default function Layout() {
   const { totalItems } = useCart()
   const { lang, setLang, t } = useLanguage()
   const navigate = useNavigate()
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const handleLogout = () => {
     logout()
     navigate('/')
+    setMenuOpen(false)
   }
+
+  const closeMenu = () => setMenuOpen(false)
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [menuOpen])
 
   return (
     <div className="layout">
       <header className="header">
-        <Link to="/" className="logo">
+        <Link to="/" className="logo" onClick={closeMenu}>
           <span className="logo-icon">◇</span>
-          جيب
+          {t('nav.appName')}
         </Link>
-        <nav className="nav">
+        <button
+          type="button"
+          className="header-menu-btn"
+          onClick={() => setMenuOpen((o) => !o)}
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={menuOpen}
+        >
+          <span className="header-menu-icon" />
+        </button>
+        <div className={`nav-backdrop ${menuOpen ? 'is-open' : ''}`} onClick={closeMenu} aria-hidden="true" />
+        <nav className={`nav ${menuOpen ? 'is-open' : ''}`}>
           <div className="lang-switcher">
             {Object.keys(languageNames).map((l) => (
               <button
@@ -37,18 +57,18 @@ export default function Layout() {
               </button>
             ))}
           </div>
-          <Link to="/" className="nav-link">{t('nav.stores')}</Link>
-          <Link to="/cart" className="nav-link nav-cart">
+          <Link to="/" className="nav-link" onClick={closeMenu}>{t('nav.stores')}</Link>
+          <Link to="/cart" className="nav-link nav-cart" onClick={closeMenu}>
             {t('nav.cart')}
             {totalItems > 0 && <span className="cart-badge">{totalItems}</span>}
           </Link>
           {isAuthenticated ? (
             <>
-              <Link to="/orders" className="nav-link">{t('nav.myOrders')}</Link>
+              <Link to="/orders" className="nav-link" onClick={closeMenu}>{t('nav.myOrders')}</Link>
               {isAdmin && (
                 <>
-                  <Link to="/create-store" className="nav-link nav-owner">{t('nav.createStore')}</Link>
-                  <Link to="/add-product" className="nav-link nav-owner">{t('nav.addProduct')}</Link>
+                  <Link to="/create-store" className="nav-link nav-owner" onClick={closeMenu}>{t('nav.createStore')}</Link>
+                  <Link to="/add-product" className="nav-link nav-owner" onClick={closeMenu}>{t('nav.addProduct')}</Link>
                 </>
               )}
               <span className="user-email" title={user?.email}>{user?.email}</span>
@@ -56,8 +76,8 @@ export default function Layout() {
             </>
           ) : (
             <>
-              <Link to="/login" className="nav-link">{t('nav.logIn')}</Link>
-              <Link to="/register" className="btn btn-accent">{t('nav.signUp')}</Link>
+              <Link to="/login" className="nav-link" onClick={closeMenu}>{t('nav.logIn')}</Link>
+              <Link to="/register" className="btn btn-accent" onClick={closeMenu}>{t('nav.signUp')}</Link>
             </>
           )}
         </nav>

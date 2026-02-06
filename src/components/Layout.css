@@ -151,3 +151,146 @@
   border-color: var(--accent);
   color: var(--accent);
 }
+
+/* ----- Mobile: hamburger + slide-out menu ----- */
+.header {
+  position: relative;
+}
+
+.header-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  background: var(--surface-hover);
+  color: var(--text);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.header-menu-icon {
+  width: 1.25rem;
+  height: 2px;
+  background: currentColor;
+  box-shadow: 0 -6px 0 currentColor, 0 6px 0 currentColor;
+}
+
+.nav-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 90;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.nav-backdrop.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+@media (max-width: 767px) {
+  .header {
+    padding: 0.75rem 1rem;
+  }
+
+  .header-menu-btn {
+    display: inline-flex;
+    order: 1;
+  }
+
+  .nav-backdrop {
+    display: block;
+  }
+
+  .nav {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(280px, 85vw);
+    max-width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 3.5rem 1.25rem 1.5rem;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    transform: translateX(100%);
+    visibility: hidden;
+    transition: transform 0.25s ease, visibility 0.25s ease;
+    overflow-y: auto;
+  }
+
+  .nav.is-open {
+    transform: translateX(0);
+    visibility: visible;
+  }
+
+  .nav .lang-switcher {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav .nav-link,
+  .nav .btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.75rem 0;
+    font-size: 1rem;
+    border-radius: var(--radius);
+  }
+
+  .nav .nav-link:hover {
+    background: var(--surface-hover);
+  }
+
+  .nav .user-email {
+    max-width: none;
+    padding: 0.75rem 0;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav .btn-ghost {
+    text-align: left;
+    padding: 0.75rem 0;
+    margin-top: 0.5rem;
+  }
+
+  .nav .btn-accent {
+    margin-top: 0.5rem;
+    text-align: center;
+  }
+
+  .nav-cart .cart-badge {
+    margin-left: 0.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .header-menu-btn {
+    display: none;
+  }
+
+  .nav-backdrop {
+    display: none !important;
+  }
+}
+
+/* Main content: less padding on small screens */
+@media (max-width: 480px) {
+  .main {
+    padding: 1rem 0.75rem;
+  }
+}
