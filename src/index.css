@@ -1,0 +1,133 @@
+:root {
+  --bg: #0d0d0f;
+  --bg-subtle: #121214;
+  --surface: #18181b;
+  --surface-hover: #27272a;
+  --border: #2e2e32;
+  --border-light: #3f3f46;
+  --text: #fafafa;
+  --text-muted: #a1a1aa;
+  --text-dim: #71717a;
+  --accent: #e4a853;
+  --accent-hover: #f0b85c;
+  --accent-soft: rgba(228, 168, 83, 0.12);
+  --success: #4ade80;
+  --success-soft: rgba(74, 222, 128, 0.15);
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.15);
+  --radius: 10px;
+  --radius-lg: 14px;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-head: 'Outfit', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* Shared page utilities */
+.page-loading,
+.page-error,
+.empty {
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.page-loading {
+  padding: 2rem;
+  font-size: 1rem;
+}
+
+.page-error {
+  color: var(--danger);
+  padding: 1rem;
+}
+
+.empty {
+  padding: 1.5rem;
+  font-size: 0.95rem;
+}
+
+/* RTL (Hebrew, Arabic) */
+[dir="rtl"] body,
+[dir="rtl"] #root {
+  text-align: right;
+}
+
+html[dir="rtl"] {
+  font-family: 'Noto Sans Hebrew', 'Noto Sans Arabic', var(--font-sans);
+}
+
+html[dir="rtl"][lang="ar"] {
+  font-family: 'Noto Sans Arabic', var(--font-sans);
+}
+
+html[dir="rtl"][lang="he"] {
+  font-family: 'Noto Sans Hebrew', var(--font-sans);
+}
+
+[dir="rtl"] .header {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .nav {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .cart-badge {
+  margin-right: 0.35rem;
+  margin-left: 0;
+}
+
+[dir="rtl"] .store-card-icon-wrap,
+[dir="rtl"] .store-header-icon-wrap,
+[dir="rtl"] .product-card-images {
+  margin-right: 0;
+  margin-left: auto;
+}
+
+[dir="rtl"] .cart-contact-row,
+[dir="rtl"] .form-image-row {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] input,
+[dir="rtl"] select,
+[dir="rtl"] textarea {
+  text-align: right;
+}

@@ -1,0 +1,450 @@
+.store-page {
+  padding: 0;
+}
+
+.store-back {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.store-back:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.store-header {
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.store-header-icon-wrap {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.store-header-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.store-header-icon-placeholder {
+  font-size: 1.75rem;
+  color: var(--accent);
+}
+
+.store-page-title {
+  font-family: var(--font-head);
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.25rem;
+}
+
+.store-page-slug {
+  color: var(--text-muted);
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.product-card {
+  padding: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.product-card:hover {
+  border-color: var(--border-light);
+  box-shadow: var(--shadow);
+}
+
+.product-card-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.product-card-image {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  background: var(--surface-hover);
+}
+
+.product-card-images .product-card-image {
+  width: calc(50% - 0.2rem);
+  height: 100px;
+}
+
+.product-card-images .product-card-image:only-child {
+  width: 100%;
+  height: 160px;
+}
+
+.product-card-image-placeholder {
+  height: 120px;
+  margin-bottom: 0.75rem;
+  border-radius: var(--radius);
+  background: var(--surface-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+.product-name {
+  font-family: var(--font-head);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+}
+
+.product-desc {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0 0 0.75rem;
+  line-height: 1.45;
+}
+
+.product-price {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--accent);
+  margin: 0 0 0.25rem;
+}
+
+.product-stock {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0 0 1rem;
+}
+
+.store-page .btn-primary {
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  width: 100%;
+}
+
+.store-page .btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  color: var(--bg);
+}
+
+.store-page .btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.store-page .empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 2rem;
+}
+
+.store-header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.store-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.product-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.product-manage {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.btn-sm {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.85rem;
+}
+
+.btn-secondary {
+  background: var(--surface-hover);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--border-light);
+  border-color: var(--border-light);
+}
+
+.btn-danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.btn-danger:hover {
+  background: rgba(248, 113, 113, 0.25);
+  color: var(--danger);
+}
+
+.btn-edit {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+.btn-edit:hover {
+  background: rgba(228, 168, 83, 0.2);
+  color: var(--accent-hover);
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  max-width: 420px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-wide {
+  max-width: 520px;
+}
+
+.modal-confirm p {
+  margin: 0 0 1.25rem;
+  color: var(--text-muted);
+}
+
+.modal h2 {
+  font-family: var(--font-head);
+  font-size: 1.25rem;
+  margin: 0 0 1rem;
+}
+
+.modal .form-error {
+  padding: 0.65rem;
+  background: var(--danger-soft);
+  color: var(--danger);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.modal input,
+.modal select,
+.modal textarea {
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.modal .form-images {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.modal .form-images-label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.modal .form-image-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.modal .input-file-hidden {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  pointer-events: none;
+}
+
+.modal .btn-choose-file {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-hover);
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.modal .btn-choose-file:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.modal .form-image-row input.input-file:disabled ~ .btn-choose-file {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.modal .upload-status {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.modal .upload-preview img {
+  max-width: 80px;
+  max-height: 80px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.modal .btn-remove-image {
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  background: var(--surface-hover);
+  color: var(--text-muted);
+  border-radius: var(--radius);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modal .btn-add-image {
+  align-self: flex-start;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.9rem;
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.modal .btn-add-image:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.modal .form-sizes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.modal .form-size-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.modal .form-size-row .input-size {
+  width: 5rem;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.modal .form-size-row .input-qty {
+  width: 5rem;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.product-size-select {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.9rem;
+  min-width: 6rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 1.25rem;
+}
+
+.page-loading,
+.page-error {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.page-error {
+  color: var(--danger);
+}
