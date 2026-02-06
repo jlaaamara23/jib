@@ -35,6 +35,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+@media (max-width: 767px) {
+  body {
+    overflow-x: hidden;
+  }
+}
+
 #root {
   min-height: 100vh;
 }
@@ -105,8 +111,11 @@ html[dir="rtl"][lang="he"] {
   flex-direction: row-reverse;
 }
 
-[dir="rtl"] .nav {
-  flex-direction: row-reverse;
+/* Only reverse nav on desktop; mobile uses column layout in Layout.css */
+@media (min-width: 768px) {
+  [dir="rtl"] .nav {
+    flex-direction: row-reverse;
+  }
 }
 
 [dir="rtl"] .cart-badge {
