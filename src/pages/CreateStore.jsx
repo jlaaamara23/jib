@@ -3,6 +3,24 @@ import { createStore, uploadImage } from '../api/api'
 import { useLanguage } from '../context/LanguageContext'
 import './AddProduct.css'
 
+const STORE_CATEGORIES = [
+  'KITCHEN',
+  'SPICES',
+  'GROCERY',
+  'CLOTHING',
+  'WOMEN_UNDERWEAR',
+  'KIDS_UNDERWEAR',
+  'CHILD_GAME',
+  'ELECTRONICS',
+  'BEAUTY',
+  'HOME_DECOR',
+  'SPORTS',
+  'PETS',
+  'HEALTH',
+  'TOOLS',
+  'OFFICE',
+]
+
 export default function CreateStore() {
   const { t } = useLanguage()
   const [name, setName] = useState('')
@@ -85,8 +103,9 @@ export default function CreateStore() {
         <label>
           {t('createStore.category')}
           <select value={category} onChange={(e) => setCategory(e.target.value)}>
-            <option value="KITCHEN">{t('category.KITCHEN')}</option>
-            <option value="CLOTHING">{t('category.CLOTHING')}</option>
+            {STORE_CATEGORIES.map((item) => (
+              <option key={item} value={item}>{t('category.' + item) || item}</option>
+            ))}
           </select>
         </label>
         <button type="submit" className="btn btn-primary" disabled={loading}>

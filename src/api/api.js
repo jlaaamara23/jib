@@ -4,6 +4,10 @@ function getToken() {
   return localStorage.getItem('token');
 }
 
+function clearAuthToken() {
+  localStorage.removeItem('token');
+}
+
 function headers(includeAuth = true) {
   const h = { 'Content-Type': 'application/json' };
   if (includeAuth) {
@@ -36,6 +40,12 @@ export async function getProducts(storeId, categoryId = null) {
   if (categoryId) url += `?categoryId=${categoryId}`;
   const res = await fetch(url, { headers: headers(false) });
   if (!res.ok) throw new Error('Failed to load products');
+  return res.json();
+}
+
+export async function getProductById(id) {
+  const res = await fetch(`${API_BASE}/products/${encodeURIComponent(id)}`, { headers: headers(false) });
+  if (!res.ok) throw new Error('Product not found');
   return res.json();
 }
 
@@ -94,7 +104,14 @@ export async function createStore(name, category, iconUrl = '') {
     headers: headers(),
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error('Failed to create store');
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401 || res.status === 403) {
+      clearAuthToken();
+      throw new Error(data.error || 'Session expired or forbidden. Please log in again.');
+    }
+    throw new Error(data.error || data.message || 'Failed to create store');
+  }
   return res.json();
 }
 
@@ -124,7 +141,14 @@ export async function addProduct(data) {
     headers: headers(),
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Failed to add product');
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    if (res.status === 401 || res.status === 403) {
+      clearAuthToken();
+      throw new Error(body.error || 'Session expired or forbidden. Please log in again.');
+    }
+    throw new Error(body.error || 'Failed to add product');
+  }
   return res.json();
 }
 
@@ -134,7 +158,14 @@ export async function updateProduct(id, data) {
     headers: headers(),
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Failed to update product');
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    if (res.status === 401 || res.status === 403) {
+      clearAuthToken();
+      throw new Error(body.error || 'Session expired or forbidden. Please log in again.');
+    }
+    throw new Error(body.error || body.message || 'Failed to update product');
+  }
   return res.json();
 }
 
@@ -143,7 +174,25 @@ export async function deleteProduct(id) {
     method: 'DELETE',
     headers: headers(),
   });
-  if (!res.ok) throw new Error('Failed to delete product');
+  if (!res.ok) {
+    let message = ''
+    try {
+      const data = await res.json()
+      message = data?.error || ''
+    } catch {
+      message = await res.text().catch(() => '')
+    }
+    if (!message) {
+      if (res.status === 409) {
+        message = 'Cannot delete this product because it is used in previous orders. Remove its image or set stock to 0 instead.'
+      } else if (res.status === 401 || res.status === 403) {
+        message = 'Session expired or forbidden. Please log in again.'
+      } else {
+        message = 'Failed to delete product'
+      }
+    }
+    throw new Error(message);
+  }
 }
 
 export async function createOrder(storeId, items) {
@@ -152,14 +201,54 @@ export async function createOrder(storeId, items) {
     headers: headers(),
     body: JSON.stringify({ storeId, items }),
   });
-  if (!res.ok) throw new Error('Failed to create order');
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401) {
+      clearAuthToken();
+      throw new Error(data.error || 'Session expired. Please log in again.');
+    }
+    throw new Error(data.error || 'Failed to create order');
+  }
   return res.json();
 }
 
 export async function getMyOrders() {
   const res = await fetch(`${API_BASE}/orders/my`, { headers: headers() });
-  if (!res.ok) throw new Error('Failed to load orders');
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Failed to load orders');
+  }
   return res.json();
+}
+
+export async function getAllOrdersForAdmin() {
+  const res = await fetch(`${API_BASE}/orders/admin/all`, { headers: headers() });
+  if (res.status === 403) {
+    // Fallback for users whose role changed or stale role state in the client.
+    return getMyOrders();
+  }
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Failed to load all orders');
+  }
+  return res.json();
+}
+
+export async function deleteOrder(orderId) {
+  const res = await fetch(`${API_BASE}/orders/${orderId}`, {
+    method: 'DELETE',
+    headers: headers(),
+  });
+  if (!res.ok) {
+    let message = ''
+    try {
+      const data = await res.json()
+      message = data?.error || ''
+    } catch {
+      message = await res.text().catch(() => '')
+    }
+    throw new Error(message || 'Failed to delete order');
+  }
 }
 
 export async function createPaymentIntent(amount, currency = 'ils', orderId = null) {
@@ -201,6 +290,10 @@ export async function uploadImage(file) {
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
+    if (res.status === 401 || res.status === 403) {
+      clearAuthToken();
+      throw new Error(data.error || 'Session expired or forbidden. Please log in again.');
+    }
     throw new Error(data.error || 'Upload failed');
   }
   const data = await res.json();

@@ -152,6 +152,12 @@
   margin: 0 0 1rem;
 }
 
+.cart-minimum-hint {
+  font-size: 0.9rem;
+  color: var(--accent);
+  margin: 0 0 0.75rem;
+}
+
 .cart-page .success {
   color: var(--success);
   margin-bottom: 1rem;
@@ -216,6 +222,21 @@
 
 .cart-contact-value {
   color: var(--text);
+}
+
+.cart-phone-input {
+  width: 100%;
+  max-width: 280px;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.cart-phone-input:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 
 .payment-form {

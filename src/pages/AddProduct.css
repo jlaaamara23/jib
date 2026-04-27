@@ -231,3 +231,53 @@
   max-width: 64px;
   max-height: 64px;
 }
+
+.form-color-variants {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.color-variant-block {
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-hover);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.color-variant-header {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.input-color-name {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.input-color-qty {
+  width: 4rem;
+  padding: 0.5rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.form-image-row-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}

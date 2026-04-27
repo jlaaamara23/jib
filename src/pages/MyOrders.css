@@ -58,3 +58,18 @@
   color: var(--text);
   font-weight: 600;
 }
+
+.order-items {
+  margin-top: 0.5rem;
+}
+
+.order-items-title {
+  margin: 0.25rem 0;
+  font-weight: 600;
+}
+
+.order-items-list {
+  margin: 0.25rem 0 0.5rem 1.2rem;
+  padding: 0;
+  color: var(--text-muted);
+}

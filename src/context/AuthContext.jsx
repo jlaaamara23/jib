@@ -22,13 +22,10 @@ export function AuthProvider({ children }) {
           })
         })
         .catch(() => {
-          try {
-            const payload = JSON.parse(atob(token.split('.')[1]))
-            const role = payload.role != null ? String(payload.role).toUpperCase().replace(/^ROLE_/, '') : null
-            setUser({ id: null, email: payload.sub || null, role: role || null, phone: null })
-          } catch {
-            setUser({ id: null, email: null, role: null, phone: null })
-          }
+          // Keep frontend permissions aligned with backend authorization.
+          localStorage.removeItem('token')
+          setToken(null)
+          setUser(null)
         })
         .finally(() => setLoading(false))
     } else {

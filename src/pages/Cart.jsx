@@ -78,6 +78,9 @@ export default function Cart() {
   const [clientSecret, setClientSecret] = useState(null)
   const [paymentDone, setPaymentDone] = useState(false)
   const [paidWithCard, setPaidWithCard] = useState(false)
+  const [phoneInput, setPhoneInput] = useState('')
+
+  const MIN_ORDER = 80
 
   const byStore = items.reduce((acc, item) => {
     const key = item.storeId
@@ -86,6 +89,15 @@ export default function Cart() {
     return acc
   }, {})
 
+  const storeTotals = Object.fromEntries(
+    Object.entries(byStore).map(([sid, { items: storeItems }]) => [
+      sid,
+      storeItems.reduce((sum, i) => sum + Number(i.price) * i.quantity, 0),
+    ])
+  )
+  const storesBelowMin = Object.entries(storeTotals).filter(([, total]) => total < MIN_ORDER)
+  const canCheckout = storesBelowMin.length === 0
+
   useEffect(() => {
     if (!user?.email) return
     getProfile()
@@ -93,15 +105,30 @@ export default function Cart() {
       .catch(() => setProfile({ email: user.email, phone: user.phone || '' }))
   }, [user?.email, user?.phone])
 
+  useEffect(() => {
+    setPhoneInput(profile?.phone || user?.phone || '')
+  }, [profile?.phone, user?.phone])
+
+  const normalizedPhone = (phoneInput || '').trim()
+  const normalizedPhoneDigits = normalizedPhone.replace(/[^\d+]/g, '')
+  const hasValidPhone = /^\+?\d{9,15}$/.test(normalizedPhoneDigits)
+
+  const ensurePhoneBeforeOrder = () => {
+    if (hasValidPhone) return true
+    setError('Please enter a valid phone number (9-15 digits) before placing the order.')
+    return false
+  }
+
   const placeOrdersOnly = async () => {
     if (Object.keys(byStore).length === 0) return
+    if (!ensurePhoneBeforeOrder()) return
     setError('')
     setLoading(true)
     try {
       const storeIds = Object.keys(byStore)
       for (const sid of storeIds) {
         const storeItems = byStore[sid].items
-        const itemsPayload = storeItems.map((i) => ({ productId: i.id, quantity: i.quantity, size: i.size || undefined }))
+        const itemsPayload = storeItems.map((i) => ({ productId: i.id, quantity: i.quantity, size: i.size || undefined, color: i.color || undefined }))
         await createOrder(Number(sid), itemsPayload)
       }
       clearCart()
@@ -115,6 +142,7 @@ export default function Cart() {
 
   const handleProceedToPayment = async () => {
     if (Object.keys(byStore).length === 0) return
+    if (!ensurePhoneBeforeOrder()) return
     setError('')
     setLoading(true)
     try {
@@ -122,7 +150,7 @@ export default function Cart() {
       const ids = []
       for (const sid of storeIds) {
         const storeItems = byStore[sid].items
-        const itemsPayload = storeItems.map((i) => ({ productId: i.id, quantity: i.quantity, size: i.size || undefined }))
+        const itemsPayload = storeItems.map((i) => ({ productId: i.id, quantity: i.quantity, size: i.size || undefined, color: i.color || undefined }))
         const res = await createOrder(Number(sid), itemsPayload)
         ids.push(res.id)
       }
@@ -196,8 +224,23 @@ export default function Cart() {
           </div>
           <div className="cart-contact-row">
             <span className="cart-contact-label">{t('cart.phone')}</span>
-            <span className="cart-contact-value">{profile?.phone || user?.phone || '—'}</span>
+            {hasValidPhone ? (
+              <span className="cart-contact-value">{normalizedPhoneDigits}</span>
+            ) : (
+              <input
+                type="tel"
+                className="cart-phone-input"
+                value={phoneInput}
+                onChange={(e) => {
+                  setPhoneInput(e.target.value)
+                  if (error) setError('')
+                }}
+                placeholder="Enter phone number (9-15 digits)"
+                autoComplete="tel"
+              />
+            )}
           </div>
+          {!hasValidPhone && <p className="cart-contact-note">Please enter a valid phone number to continue checkout.</p>}
         </div>
       </section>
 
@@ -207,16 +250,16 @@ export default function Cart() {
             <h2>{storeName}</h2>
             <ul className="cart-list">
               {storeItems.map((item) => (
-                <li key={`${item.id}-${item.storeId}-${item.size || ''}`} className="cart-item">
+                <li key={`${item.id}-${item.storeId}-${item.size || ''}-${item.color || ''}`} className="cart-item">
                   <div className="cart-item-info">
-                    <span className="cart-item-name">{item.name}{item.size ? ` (${item.size})` : ''}</span>
+                    <span className="cart-item-name">{item.name}{item.size ? ` (${item.size})` : ''}{item.color ? ` · ${item.color}` : ''}</span>
                     <span className="cart-item-price">₪{Number(item.price).toFixed(2)} × {item.quantity}</span>
                   </div>
                   <div className="cart-item-actions">
-                    <button type="button" onClick={() => updateQuantity(item.id, item.storeId, -1, item.size)} aria-label="-">−</button>
+                    <button type="button" onClick={() => updateQuantity(item.id, item.storeId, -1, item.size, item.color)} aria-label="-">−</button>
                     <span>{item.quantity}</span>
-                    <button type="button" onClick={() => updateQuantity(item.id, item.storeId, 1, item.size)} aria-label="+">+</button>
-                    <button type="button" className="cart-remove" onClick={() => removeFromCart(item.id, item.storeId, item.size)}>{t('cart.remove')}</button>
+                    <button type="button" onClick={() => updateQuantity(item.id, item.storeId, 1, item.size, item.color)} aria-label="+">+</button>
+                    <button type="button" className="cart-remove" onClick={() => removeFromCart(item.id, item.storeId, item.size, item.color)}>{t('cart.remove')}</button>
                   </div>
                 </li>
               ))}
@@ -226,6 +269,14 @@ export default function Cart() {
       </div>
       <div className="cart-footer">
         <p className="cart-total">{t('cart.total')}: ₪{totalPrice.toFixed(2)}</p>
+        {storesBelowMin.length > 0 && (
+          <p className="cart-minimum-hint">
+            {t('cart.minimumOrder')} {t('cart.minimumOrderHint')}
+            {storesBelowMin.map(([sid]) => (
+              <span key={sid}> {byStore[sid]?.storeName}: ₪{storeTotals[sid]?.toFixed(2)}</span>
+            ))}
+          </p>
+        )}
         <h3 className="cart-step-title">2. {t('cart.payWithCard')}</h3>
         {!stripePk ? (
           <div className="cart-payment-info">
@@ -233,10 +284,10 @@ export default function Cart() {
             <p className="cart-payment-info-sub">{t('cart.paymentNotConfiguredSub')}</p>
           </div>
         ) : null}
-        <button type="button" className="btn btn-primary" onClick={handleProceedToPayment} disabled={loading || !stripePk}>
+        <button type="button" className="btn btn-primary" onClick={handleProceedToPayment} disabled={loading || !stripePk || !canCheckout || !hasValidPhone}>
           {loading ? t('cart.preparing') : stripePk ? t('cart.proceedToPayment') : t('cart.proceedToPayment')}
         </button>
-        <button type="button" className="btn btn-secondary" onClick={placeOrdersOnly} disabled={loading}>
+        <button type="button" className="btn btn-secondary" onClick={placeOrdersOnly} disabled={loading || !canCheckout || !hasValidPhone}>
           {loading ? t('cart.placing') : t('cart.placeOrderNoPayment')}
         </button>
       </div>

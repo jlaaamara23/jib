@@ -39,24 +39,53 @@
   margin: 0 0 1rem;
 }
 
-.store-grid {
+.category-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.category-chip {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+
+.category-chip:hover {
+  border-color: var(--accent);
+}
+
+.category-chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.product-feed-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 1rem;
 }
 
-.store-card {
-  display: block;
-  padding: 1.5rem;
+.feed-card {
+  display: flex;
+  flex-direction: column;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
+  overflow: hidden;
   text-decoration: none;
   color: inherit;
   transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
 }
 
-.store-card:hover {
+.feed-card:hover {
   border-color: var(--accent);
   background: var(--surface-hover);
   box-shadow: var(--shadow);
@@ -64,30 +93,28 @@
   color: inherit;
 }
 
-.store-card-icon-wrap {
-  width: 56px;
-  height: 56px;
-  margin-bottom: 0.75rem;
-  border-radius: var(--radius);
-  overflow: hidden;
+.feed-card-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.feed-card-image-placeholder {
+  width: 100%;
+  height: 200px;
   background: var(--surface-hover);
   display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--text-muted);
+  font-size: 0.95rem;
 }
 
-.store-card-icon {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.feed-card-content {
+  padding: 1rem;
 }
 
-.store-card-icon-placeholder {
-  font-size: 1.5rem;
-  color: var(--accent);
-}
-
-.store-card-category {
+.feed-card-category {
   display: inline-block;
   font-size: 0.7rem;
   text-transform: uppercase;
@@ -96,16 +123,17 @@
   margin-bottom: 0.5rem;
 }
 
-.store-card-name {
+.feed-card-name {
   font-family: var(--font-head);
-  font-size: 1.2rem;
+  font-size: 1.05rem;
   font-weight: 600;
   margin: 0 0 0.25rem;
 }
 
-.store-card-slug {
-  font-size: 0.9rem;
-  color: var(--text-muted);
+.feed-card-price {
+  margin: 0.55rem 0 0;
+  font-weight: 600;
+  color: var(--text);
 }
 
 .home .empty {

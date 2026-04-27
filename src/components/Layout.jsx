@@ -7,7 +7,7 @@ import { languageNames } from '../i18n/translations'
 import './Layout.css'
 
 export default function Layout() {
-  const { isAuthenticated, isAdmin, logout, user } = useAuth()
+  const { isAuthenticated, logout, user } = useAuth()
   const { totalItems } = useCart()
   const { lang, setLang, t } = useLanguage()
   const navigate = useNavigate()
@@ -65,7 +65,7 @@ export default function Layout() {
           {isAuthenticated ? (
             <>
               <Link to="/orders" className="nav-link" onClick={closeMenu}>{t('nav.myOrders')}</Link>
-              {isAdmin && (
+              {isAuthenticated && (
                 <>
                   <Link to="/create-store" className="nav-link nav-owner" onClick={closeMenu}>{t('nav.createStore')}</Link>
                   <Link to="/add-product" className="nav-link nav-owner" onClick={closeMenu}>{t('nav.addProduct')}</Link>

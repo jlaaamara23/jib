@@ -1,14 +1,43 @@
 import { useState, useEffect, useRef } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { getStoreBySlug, getProducts, updateStore, deleteStore, updateProduct, deleteProduct, uploadImage } from '../api/api'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
+import { lineUnitPrice, usesWeightPricing } from '../utils/weightPrice'
 import './StorePage.css'
+
+const STORE_CATEGORIES = [
+  'KITCHEN',
+  'SPICES',
+  'GROCERY',
+  'CLOTHING',
+  'WOMEN_UNDERWEAR',
+  'KIDS_UNDERWEAR',
+  'CHILD_GAME',
+  'ELECTRONICS',
+  'BEAUTY',
+  'HOME_DECOR',
+  'SPORTS',
+  'PETS',
+  'HEALTH',
+  'TOOLS',
+  'OFFICE',
+]
+
+const SIZE_OPTIONS_BY_CATEGORY = {
+  SPICES: ['250G', '500G', '1KG', '2KG', '5KG'],
+  GROCERY: ['250G', '500G', '1KG', '2KG', '5KG'],
+  KIDS_UNDERWEAR: ['2', '4', '6', '8', '10', '12', '14'],
+}
+
+const DEFAULT_SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'XXL']
 
 export default function StorePage() {
   const { slug } = useParams()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const editFromQueryHandled = useRef(false)
   const { t } = useLanguage()
   const { user } = useAuth()
   const [store, setStore] = useState(null)
@@ -32,16 +61,21 @@ export default function StorePage() {
   const [editProductStock, setEditProductStock] = useState('0')
   const [editProductImageUrls, setEditProductImageUrls] = useState([''])
   const [editProductSizeStocks, setEditProductSizeStocks] = useState([])
+  const [editProductColorVariants, setEditProductColorVariants] = useState([])
   const [uploadingProductImage, setUploadingProductImage] = useState(null)
+  const [uploadingColorEdit, setUploadingColorEdit] = useState(null)
+  const editColorFileRefs = useRef({})
   const [savingProduct, setSavingProduct] = useState(false)
   const [selectedSizes, setSelectedSizes] = useState({})
-  const SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'XXL']
+  const [selectedColors, setSelectedColors] = useState({})
+  const SIZE_OPTIONS = SIZE_OPTIONS_BY_CATEGORY[store?.category] || DEFAULT_SIZE_OPTIONS
 
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [editModalError, setEditModalError] = useState('')
   const editFileInputRefs = useRef([])
 
   const canManage = store && user && user.role === 'ADMIN'
+  const isLoggedIn = !!user
 
   const loadStore = () => {
     getStoreBySlug(slug)
@@ -57,6 +91,23 @@ export default function StorePage() {
   useEffect(() => {
     loadStore()
   }, [slug])
+
+  useEffect(() => {
+    editFromQueryHandled.current = false
+  }, [slug])
+
+  useEffect(() => {
+    if (products.length === 0) return
+    setSelectedColors((prev) => {
+      let next = { ...prev }
+      products.forEach((p) => {
+        if (p.colorVariants?.length > 0 && !next[p.id]) {
+          next[p.id] = p.colorVariants[0].color
+        }
+      })
+      return next
+    })
+  }, [products])
 
   const openEditStore = () => {
     setEditStoreName(store.name)
@@ -113,8 +164,22 @@ export default function StorePage() {
     setEditProductStock(String(p.stockQuantity ?? 0))
     setEditProductImageUrls(p.imageUrls?.length ? [...p.imageUrls] : [''])
     setEditProductSizeStocks((p.sizeStock?.length ? p.sizeStock : []).map((s) => ({ size: s.size, quantity: String(s.quantity ?? 0) })))
+    setEditProductColorVariants((p.colorVariants?.length ? p.colorVariants : []).map((v) => ({ color: v.color || '', imageUrls: v.imageUrls?.length ? [...v.imageUrls] : [''], quantity: v.quantity ?? '' })))
     setEditProductOpen(true)
   }
+
+  useEffect(() => {
+    if (!canManage || !store || products.length === 0) return
+    const raw = searchParams.get('edit')
+    if (!raw || editFromQueryHandled.current) return
+    const p = products.find((x) => String(x.id) === String(raw))
+    if (!p) return
+    editFromQueryHandled.current = true
+    openEditProduct(p)
+    navigate(`/store/${encodeURIComponent(slug)}`, { replace: true })
+    // openEditProduct is intentionally omitted from deps: one-shot deep-link open
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canManage, store, products, searchParams, slug, navigate])
 
   const setEditProductImageUrlAt = (index, value) => {
     setEditProductImageUrls((prev) => {
@@ -146,33 +211,81 @@ export default function StorePage() {
   const setEditSizeStockAt = (index, field, value) => {
     setEditProductSizeStocks((prev) => prev.map((s, i) => (i === index ? { ...s, [field]: value } : s)))
   }
-  const addEditSizeRow = () => setEditProductSizeStocks((prev) => [...prev, { size: 'M', quantity: '' }])
+  const addEditSizeRow = () => setEditProductSizeStocks((prev) => [...prev, { size: SIZE_OPTIONS[0], quantity: '' }])
   const removeEditSizeRow = (index) => setEditProductSizeStocks((prev) => prev.filter((_, i) => i !== index))
+
+  const addEditColorVariant = () => setEditProductColorVariants((prev) => [...prev, { color: '', imageUrls: [''], quantity: '' }])
+  const removeEditColorVariant = (ci) => setEditProductColorVariants((prev) => prev.filter((_, i) => i !== ci))
+  const setEditColorVariantAt = (ci, field, value) => setEditProductColorVariants((prev) => prev.map((cv, i) => (i === ci ? { ...cv, [field]: value } : cv)))
+  const setEditColorVariantImageAt = (ci, ii, value) => setEditProductColorVariants((prev) => prev.map((cv, i) => {
+    if (i !== ci) return cv
+    const urls = [...(cv.imageUrls || [''])]
+    urls[ii] = value
+    return { ...cv, imageUrls: urls }
+  }))
+  const addEditColorVariantImage = (ci) => setEditProductColorVariants((prev) => prev.map((cv, i) => (i === ci ? { ...cv, imageUrls: [...(cv.imageUrls || []), ''] } : cv)))
+  const removeEditColorVariantImage = (ci, ii) => setEditProductColorVariants((prev) => prev.map((cv, i) => (i === ci ? { ...cv, imageUrls: (cv.imageUrls || []).filter((_, j) => j !== ii) } : cv)))
+  const handleEditColorImageFile = async (ci, ii, e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingColorEdit({ ci, ii })
+    setEditModalError('')
+    try {
+      const url = await uploadImage(file)
+      setEditColorVariantImageAt(ci, ii, url)
+    } catch (err) {
+      setEditModalError(err.message || 'Upload failed')
+    } finally {
+      setUploadingColorEdit(null)
+      e.target.value = ''
+    }
+  }
 
   const saveProduct = async (e) => {
     e.preventDefault()
     if (!editProduct) return
+    const trimmedName = editProductName.trim()
+    const parsedPrice = Number(editProductPrice)
+    if (!trimmedName) {
+      setEditModalError('Please enter product name.')
+      return
+    }
+    if (Number.isNaN(parsedPrice) || parsedPrice <= 0) {
+      setEditModalError('Please enter a valid price greater than 0.')
+      return
+    }
     setSavingProduct(true)
+    setEditModalError('')
     try {
       const urls = editProductImageUrls.map((u) => u.trim()).filter(Boolean)
       const sizeStocksPayload = editProductSizeStocks
         .map((s) => ({ size: s.size, quantity: Math.max(0, parseInt(s.quantity, 10) || 0) }))
         .filter((s) => s.quantity > 0)
       const totalFromSizes = sizeStocksPayload.reduce((sum, s) => sum + s.quantity, 0)
+      const colorVariantsPayload = editProductColorVariants
+        .filter((cv) => (cv.color || '').trim())
+        .map((cv) => ({
+          color: (cv.color || '').trim(),
+          imageUrls: (cv.imageUrls || []).map((u) => (typeof u === 'string' ? u : '').trim()).filter(Boolean),
+          quantity: Math.max(0, parseInt(cv.quantity, 10) || 0),
+        }))
+        .filter((cv) => cv.imageUrls.length > 0)
       await updateProduct(editProduct.id, {
         storeId: store.id,
-        name: editProductName.trim(),
+        name: trimmedName,
         description: editProductDesc.trim() || null,
-        price: Number(editProductPrice),
+        price: parsedPrice,
         stockQuantity: totalFromSizes > 0 ? totalFromSizes : Math.max(0, parseInt(editProductStock, 10) || 0),
+        categoryId: editProduct.categoryId ?? null,
         imageUrls: urls.length ? urls : null,
         sizeStocks: sizeStocksPayload.length > 0 ? sizeStocksPayload : null,
+        colorVariants: colorVariantsPayload.length > 0 ? colorVariantsPayload : null,
       })
       setEditProductOpen(false)
       setEditProduct(null)
       loadStore()
     } catch (err) {
-      setError(err.message)
+      setEditModalError(err.message || 'Failed to update product')
     } finally {
       setSavingProduct(false)
     }
@@ -187,6 +300,35 @@ export default function StorePage() {
     } catch (err) {
       setError(err.message)
       setDeleteConfirm(null)
+    }
+  }
+
+  const removeProductImages = async (p) => {
+    if (!p) return
+    try {
+      const sizeStocksPayload = (p.sizeStock || [])
+        .map((s) => ({ size: s.size, quantity: Math.max(0, parseInt(s.quantity, 10) || 0) }))
+        .filter((s) => s.quantity > 0)
+      const totalFromSizes = sizeStocksPayload.reduce((sum, s) => sum + s.quantity, 0)
+      const colorVariantsPayload = (p.colorVariants || []).map((cv) => ({
+        color: (cv.color || '').trim(),
+        imageUrls: [],
+        quantity: Math.max(0, parseInt(cv.quantity, 10) || 0),
+      })).filter((cv) => cv.color)
+
+      await updateProduct(p.id, {
+        storeId: store.id,
+        name: (p.name || '').trim(),
+        description: p.description || null,
+        price: Number(p.price),
+        stockQuantity: totalFromSizes > 0 ? totalFromSizes : Math.max(0, parseInt(p.stockQuantity, 10) || 0),
+        imageUrls: null,
+        sizeStocks: sizeStocksPayload.length > 0 ? sizeStocksPayload : null,
+        colorVariants: colorVariantsPayload.length > 0 ? colorVariantsPayload : null,
+      })
+      loadStore()
+    } catch (err) {
+      setError(err.message || 'Failed to remove image')
     }
   }
 
@@ -221,23 +363,62 @@ export default function StorePage() {
       </header>
 
       <div className="products-grid">
-        {products.map((p) => (
+        {products.map((p) => {
+          const weightStore = usesWeightPricing(store.category)
+          const hasColorVariants = p.colorVariants && p.colorVariants.length > 0
+          const selectedColor = selectedColors[p.id]
+          const activeVariant = hasColorVariants && selectedColor
+            ? p.colorVariants.find((v) => v.color === selectedColor)
+            : hasColorVariants ? p.colorVariants[0] : null
+          const displayImages = activeVariant?.imageUrls?.length > 0
+            ? activeVariant.imageUrls
+            : (p.imageUrls && p.imageUrls.length > 0 ? p.imageUrls : null)
+          return (
           <article key={p.id} className="product-card">
-            {p.imageUrls && p.imageUrls.length > 0 ? (
+            {displayImages && displayImages.length > 0 ? (
               <div className="product-card-images">
-                {p.imageUrls.map((url, i) => (
+                {displayImages.map((url, i) => (
                   <img key={i} src={url} alt="" className="product-card-image" />
                 ))}
               </div>
             ) : (
               <div className="product-card-image-placeholder">{t('storePage.noImage')}</div>
             )}
-            <h3 className="product-name">{p.name}</h3>
+            {hasColorVariants && (
+              <div className="product-color-swatches">
+                {p.colorVariants.map((v) => (
+                  <button
+                    key={v.color}
+                    type="button"
+                    className={`color-swatch ${selectedColor === v.color ? 'active' : ''}`}
+                    onClick={() => setSelectedColors((prev) => ({ ...prev, [p.id]: v.color }))}
+                    title={v.color}
+                  >
+                    {v.color}
+                  </button>
+                ))}
+              </div>
+            )}
+            <h3 className="product-name">
+              <Link to={`/product/${p.id}?store=${encodeURIComponent(slug)}`} className="product-name-link">{p.name}</Link>
+            </h3>
             {p.description && <p className="product-desc">{p.description}</p>}
-            <p className="product-price">₪{Number(p.price).toFixed(2)}</p>
+            <p className="product-price">
+              ₪{Number(p.price).toFixed(2)}
+              {weightStore && p.sizeStock?.length ? <span className="product-price-per-kg">{t('storePage.perKg')}</span> : null}
+            </p>
+            {weightStore && p.sizeStock?.length && selectedSizes[p.id] ? (
+              <p className="product-pack-subtotal">
+                {t('storePage.thisPack')}: ₪{lineUnitPrice({ ...p, storeCategory: store.category }, selectedSizes[p.id]).toFixed(2)}
+              </p>
+            ) : null}
             {p.sizeStock?.length > 0 ? (
                 <p className="product-stock">
                   {p.sizeStock.filter((s) => (s.quantity || 0) > 0).map((s) => `${s.size}: ${s.quantity}`).join(' · ') || t('storePage.outOfStock')}
+                </p>
+              ) : hasColorVariants && activeVariant ? (
+                <p className="product-stock">
+                  {p.colorVariants.filter((v) => (v.quantity ?? 0) > 0).map((v) => `${v.color}: ${v.quantity}`).join(' · ') || t('storePage.outOfStock')}
                 </p>
               ) : (
                 <p className="product-stock">{p.stockQuantity > 0 ? `${t('storePage.inStock')}: ${p.stockQuantity}` : t('storePage.outOfStock')}</p>
@@ -250,7 +431,7 @@ export default function StorePage() {
                     onChange={(e) => setSelectedSizes((prev) => ({ ...prev, [p.id]: e.target.value }))}
                     className="product-size-select"
                   >
-                    <option value="">{t('addProduct.size')}</option>
+                    <option value="">{weightStore ? t('storePage.weight') : t('addProduct.size')}</option>
                     {p.sizeStock.filter((s) => (s.quantity || 0) > 0).map((s) => (
                       <option key={s.size} value={s.size}>{s.size} ({s.quantity})</option>
                     ))}
@@ -259,7 +440,7 @@ export default function StorePage() {
                     type="button"
                     className="btn btn-primary"
                     disabled={!selectedSizes[p.id]}
-                    onClick={() => addToCart({ ...p, storeId: store.id, storeName: store.name }, 1, selectedSizes[p.id])}
+                    onClick={() => addToCart({ ...p, storeId: store.id, storeName: store.name, storeCategory: store.category }, 1, selectedSizes[p.id], hasColorVariants ? selectedColor || activeVariant?.color : null)}
                   >
                     {t('storePage.addToCart')}
                   </button>
@@ -268,25 +449,38 @@ export default function StorePage() {
                 <button
                   type="button"
                   className="btn btn-primary"
-                  disabled={p.stockQuantity <= 0}
-                  onClick={() => addToCart({ ...p, storeId: store.id, storeName: store.name })}
+                  disabled={hasColorVariants ? ((activeVariant?.quantity ?? 0) <= 0) : (p.stockQuantity <= 0)}
+                  onClick={() => addToCart({ ...p, storeId: store.id, storeName: store.name, storeCategory: store.category }, 1, null, hasColorVariants ? selectedColor || activeVariant?.color : null)}
                 >
                   {t('storePage.addToCart')}
                 </button>
               )}
-              {canManage && (
+              {isLoggedIn && (
                 <div className="product-manage">
-                  <button type="button" className="btn btn-edit btn-sm" onClick={() => openEditProduct(p)}>
+                  {canManage && (
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={() => removeProductImages(p)}>
+                      Remove image
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="btn btn-edit btn-sm"
+                    onClick={() => openEditProduct(p)}
+                    disabled={!canManage}
+                    title={!canManage ? t('storePage.nonAdminEditHint') : ''}
+                  >
                     {t('storePage.editProduct')}
                   </button>
-                  <button type="button" className="btn btn-danger btn-sm" onClick={() => setDeleteConfirm({ type: 'product', id: p.id, name: p.name })}>
-                    {t('storePage.deleteProduct')}
-                  </button>
+                  {canManage && (
+                    <button type="button" className="btn btn-danger btn-sm" onClick={() => setDeleteConfirm({ type: 'product', id: p.id, name: p.name })}>
+                      {t('storePage.deleteProduct')}
+                    </button>
+                  )}
                 </div>
               )}
             </div>
           </article>
-        ))}
+        )})}
       </div>
       {products.length === 0 && <p className="empty">{t('storePage.noProducts')}</p>}
 
@@ -311,8 +505,9 @@ export default function StorePage() {
               <label>
                 {t('createStore.category')}
                 <select value={editStoreCategory} onChange={(e) => setEditStoreCategory(e.target.value)}>
-                  <option value="KITCHEN">{t('category.KITCHEN')}</option>
-                  <option value="CLOTHING">{t('category.CLOTHING')}</option>
+                  {STORE_CATEGORIES.map((item) => (
+                    <option key={item} value={item}>{t('category.' + item) || item}</option>
+                  ))}
                 </select>
               </label>
               <div className="modal-actions">
@@ -378,9 +573,61 @@ export default function StorePage() {
                 ))}
                 <button type="button" className="btn-add-image" onClick={addEditSizeRow}>{t('addProduct.addSize')}</button>
               </div>
+              <div className="form-color-variants">
+                <span className="form-images-label">{t('addProduct.colorVariants')}</span>
+                <p className="field-hint">{t('addProduct.colorVariantsHint')}</p>
+                {editProductColorVariants.map((cv, ci) => (
+                  <div key={ci} className="color-variant-block">
+                    <div className="color-variant-header">
+                      <input
+                        type="text"
+                        placeholder={t('addProduct.colorName')}
+                        value={cv.color}
+                        onChange={(e) => setEditColorVariantAt(ci, 'color', e.target.value)}
+                        className="input-color-name"
+                      />
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="Qty"
+                        value={cv.quantity ?? ''}
+                        onChange={(e) => setEditColorVariantAt(ci, 'quantity', e.target.value)}
+                        className="input-color-qty"
+                      />
+                      <button type="button" className="btn-remove-image" onClick={() => removeEditColorVariant(ci)}>✕</button>
+                    </div>
+                    <div className="form-image-row-wrap">
+                      {(cv.imageUrls || ['']).map((url, ii) => (
+                        <div key={ii} className="form-image-row">
+                          <input
+                            ref={(el) => { editColorFileRefs.current[`${ci}-${ii}`] = el }}
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleEditColorImageFile(ci, ii, e)}
+                            disabled={uploadingColorEdit !== null}
+                            className="input-file input-file-hidden"
+                          />
+                          <button
+                            type="button"
+                            className="btn-choose-file"
+                            disabled={uploadingColorEdit !== null}
+                            onClick={() => editColorFileRefs.current[`${ci}-${ii}`]?.click()}
+                          >
+                            {uploadingColorEdit?.ci === ci && uploadingColorEdit?.ii === ii ? t('upload.uploading') : t('upload.chooseFile')}
+                          </button>
+                          {url && <div className="upload-preview"><img src={url} alt="" /></div>}
+                          <button type="button" className="btn-remove-image" onClick={() => removeEditColorVariantImage(ci, ii)}>✕</button>
+                        </div>
+                      ))}
+                      <button type="button" className="btn-add-image" onClick={() => addEditColorVariantImage(ci)}>{t('addProduct.addImage')}</button>
+                    </div>
+                  </div>
+                ))}
+                <button type="button" className="btn-add-image" onClick={addEditColorVariant}>{t('addProduct.addColor')}</button>
+              </div>
               <label>
                 {t('addProduct.price')}
-                <input type="number" step="0.01" min="0" value={editProductPrice} onChange={(e) => setEditProductPrice(e.target.value)} required />
+                <input type="number" step="0.01" min="0.01" value={editProductPrice} onChange={(e) => setEditProductPrice(e.target.value)} required />
               </label>
               <label>
                 {t('addProduct.stockQuantity')}
