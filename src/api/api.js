@@ -24,6 +24,16 @@ function headers(includeAuth = true) {
   return h;
 }
 
+async function fetchWithTimeout(url, options = {}, timeoutMs = 20000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 export async function getStores() {
   const res = await fetch(`${API_BASE}/stores`, { headers: headers(false) });
   if (!res.ok) throw new Error('Failed to load stores');
@@ -71,11 +81,19 @@ export async function login(email, password) {
 
 export async function register(email, password, role = 'CUSTOMER', phone = '') {
   const body = { email, password, role, phone: (phone || '').trim() }
-  const res = await fetch(`${API_BASE}/auth/register`, {
-    method: 'POST',
-    headers: headers(false),
-    body: JSON.stringify(body),
-  });
+  let res;
+  try {
+    res = await fetchWithTimeout(`${API_BASE}/auth/register`, {
+      method: 'POST',
+      headers: headers(false),
+      body: JSON.stringify(body),
+    });
+  } catch (err) {
+    if (err?.name === 'AbortError') {
+      throw new Error('Registration timed out. Please try again.')
+    }
+    throw err
+  }
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
     throw new Error(data.error || 'Registration failed');
