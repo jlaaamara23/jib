@@ -1,7 +1,11 @@
-// Dev: Vite proxies `/api` → backend (see vite.config.js). Production (e.g. Vercel): set VITE_API_URL to your public API origin (no trailing slash), e.g. https://api.example.com
+// Dev: Vite proxies `/api` → backend (see vite.config.js).
+// Production: prefer VITE_API_URL; if unset, use deployed backend URL.
+const DEFAULT_PROD_API_URL = 'https://multi-stores-backend-1.onrender.com/api';
+const isLocalDevHost = typeof window !== 'undefined'
+  && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 const API_BASE = (import.meta.env.VITE_API_URL && String(import.meta.env.VITE_API_URL).trim())
   ? String(import.meta.env.VITE_API_URL).trim().replace(/\/$/, '')
-  : '/api';
+  : (isLocalDevHost ? '/api' : DEFAULT_PROD_API_URL);
 
 function getToken() {
   return localStorage.getItem('token');
