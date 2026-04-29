@@ -1,7 +1,7 @@
 export const translations = {
   en: {
     nav: {
-      appName: 'BRING',
+      appName: 'JIBI',
       stores: 'Stores',
       cart: 'Cart',
       myOrders: 'My Orders',
@@ -184,7 +184,7 @@ export const translations = {
   },
   he: {
     nav: {
-      appName: 'תביא',
+      appName: 'JIBI',
       stores: 'חנויות',
       cart: 'עגלה',
       myOrders: 'ההזמנות שלי',
@@ -367,7 +367,7 @@ export const translations = {
   },
   ar: {
     nav: {
-      appName: 'جيب',
+      appName: 'JIBI',
       stores: 'المتاجر',
       cart: 'السلة',
       myOrders: 'طلباتي',

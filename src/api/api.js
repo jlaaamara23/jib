@@ -1,4 +1,7 @@
-const API_BASE = '/api';
+// Dev: Vite proxies `/api` → backend (see vite.config.js). Production (e.g. Vercel): set VITE_API_URL to your public API origin (no trailing slash), e.g. https://api.example.com
+const API_BASE = (import.meta.env.VITE_API_URL && String(import.meta.env.VITE_API_URL).trim())
+  ? String(import.meta.env.VITE_API_URL).trim().replace(/\/$/, '')
+  : '/api';
 
 function getToken() {
   return localStorage.getItem('token');

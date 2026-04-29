@@ -10,9 +10,13 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.875rem 1.5rem;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  background: rgba(16, 24, 23, 0.62);
+  border-bottom: 1px solid rgba(130, 197, 169, 0.2);
+  backdrop-filter: blur(16px);
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 120;
 }
 
 .logo {
@@ -33,7 +37,7 @@
 }
 
 .logo-icon {
-  color: var(--accent);
+  color: #6df4d3;
   font-size: 1rem;
 }
 
@@ -76,10 +80,11 @@
   padding: 0 0.3rem;
   font-size: 0.7rem;
   font-weight: 700;
-  background: var(--accent);
-  color: var(--bg);
+  background: linear-gradient(120deg, #34f0b0, #4a89ff, #b065ff);
+  color: #ffffff;
   border-radius: 999px;
   margin-left: 0.35rem;
+  box-shadow: 0 0 14px rgba(90, 181, 255, 0.6);
 }
 
 .user-email {
@@ -110,13 +115,13 @@
 }
 
 .btn-accent {
-  background: var(--accent);
-  color: var(--bg);
+  background: linear-gradient(100deg, #1ddf95, #3f96ff 55%, #934dff);
+  color: #ffffff;
 }
 
 .btn-accent:hover {
-  background: var(--accent-hover);
-  color: var(--bg);
+  box-shadow: 0 0 20px rgba(91, 181, 255, 0.42);
+  color: #ffffff;
 }
 
 .main {

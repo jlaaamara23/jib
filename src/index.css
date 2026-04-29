@@ -1,16 +1,16 @@
 :root {
-  --bg: #0d0d0f;
-  --bg-subtle: #121214;
-  --surface: #18181b;
-  --surface-hover: #27272a;
-  --border: #2e2e32;
-  --border-light: #3f3f46;
-  --text: #fafafa;
-  --text-muted: #a1a1aa;
-  --text-dim: #71717a;
-  --accent: #e4a853;
-  --accent-hover: #f0b85c;
-  --accent-soft: rgba(228, 168, 83, 0.12);
+  --bg: #060b09;
+  --bg-subtle: #0d1412;
+  --surface: #151f1c;
+  --surface-hover: #1f2d28;
+  --border: #293934;
+  --border-light: #395148;
+  --text: #f5fbff;
+  --text-muted: #96a8b4;
+  --text-dim: #6f838e;
+  --accent: #38d7a8;
+  --accent-hover: #5de3be;
+  --accent-soft: rgba(56, 215, 168, 0.16);
   --success: #4ade80;
   --success-soft: rgba(74, 222, 128, 0.15);
   --danger: #f87171;
@@ -18,8 +18,8 @@
   --radius: 10px;
   --radius-lg: 14px;
   --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-  --font-sans: 'DM Sans', system-ui, sans-serif;
-  --font-head: 'Outfit', system-ui, sans-serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-head: 'Poppins', system-ui, sans-serif;
 }
 
 * {
@@ -29,10 +29,14 @@
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 12% 6%, rgba(66, 255, 190, 0.17), transparent 36%),
+    radial-gradient(circle at 84% 12%, rgba(106, 152, 255, 0.14), transparent 28%),
+    linear-gradient(160deg, #050909 0%, #071410 50%, #090b12 100%);
   color: var(--text);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
 }
 
 @media (max-width: 767px) {
