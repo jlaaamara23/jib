@@ -76,6 +76,7 @@ export default function StorePage() {
 
   const canManage = store && user && user.role === 'ADMIN'
   const isLoggedIn = !!user
+  const canViewStockNumbers = !!canManage
 
   const loadStore = () => {
     getStoreBySlug(slug)
@@ -414,14 +415,22 @@ export default function StorePage() {
             ) : null}
             {p.sizeStock?.length > 0 ? (
                 <p className="product-stock">
-                  {p.sizeStock.filter((s) => (s.quantity || 0) > 0).map((s) => `${s.size}: ${s.quantity}`).join(' · ') || t('storePage.outOfStock')}
+                  {canViewStockNumbers
+                    ? (p.sizeStock.filter((s) => (s.quantity || 0) > 0).map((s) => `${s.size}: ${s.quantity}`).join(' · ') || t('storePage.outOfStock'))
+                    : t('storePage.inStock')}
                 </p>
               ) : hasColorVariants && activeVariant ? (
                 <p className="product-stock">
-                  {p.colorVariants.filter((v) => (v.quantity ?? 0) > 0).map((v) => `${v.color}: ${v.quantity}`).join(' · ') || t('storePage.outOfStock')}
+                  {canViewStockNumbers
+                    ? (p.colorVariants.filter((v) => (v.quantity ?? 0) > 0).map((v) => `${v.color}: ${v.quantity}`).join(' · ') || t('storePage.outOfStock'))
+                    : t('storePage.inStock')}
                 </p>
               ) : (
-                <p className="product-stock">{p.stockQuantity > 0 ? `${t('storePage.inStock')}: ${p.stockQuantity}` : t('storePage.outOfStock')}</p>
+                <p className="product-stock">
+                  {p.stockQuantity > 0
+                    ? (canViewStockNumbers ? `${t('storePage.inStock')}: ${p.stockQuantity}` : t('storePage.inStock'))
+                    : t('storePage.outOfStock')}
+                </p>
               )}
             <div className="product-card-actions">
               {p.sizeStock?.length > 0 ? (
@@ -433,7 +442,9 @@ export default function StorePage() {
                   >
                     <option value="">{weightStore ? t('storePage.weight') : t('addProduct.size')}</option>
                     {p.sizeStock.filter((s) => (s.quantity || 0) > 0).map((s) => (
-                      <option key={s.size} value={s.size}>{s.size} ({s.quantity})</option>
+                      <option key={s.size} value={s.size}>
+                        {canViewStockNumbers ? `${s.size} (${s.quantity})` : s.size}
+                      </option>
                     ))}
                   </select>
                   <button

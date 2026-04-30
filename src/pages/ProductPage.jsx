@@ -13,7 +13,7 @@ export default function ProductPage() {
   const storeFromQuery = searchParams.get('store') || ''
   const { t } = useLanguage()
   const { addToCart } = useCart()
-  const { isAdmin } = useAuth()
+  const { isAdmin, user } = useAuth()
   const [product, setProduct] = useState(null)
   const [store, setStore] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -126,6 +126,7 @@ export default function ProductPage() {
   }
 
   const weightStore = usesWeightPricing(store.category)
+  const canViewStockNumbers = user?.role === 'ADMIN' || user?.role === 'OWNER'
 
   return (
     <div className="product-page">
@@ -180,15 +181,21 @@ export default function ProductPage() {
         ) : null}
         {product.sizeStock?.length > 0 ? (
           <p className="product-page-stock">
-            {product.sizeStock.filter((s) => (s.quantity || 0) > 0).map((s) => `${s.size}: ${s.quantity}`).join(' · ') || t('storePage.outOfStock')}
+            {canViewStockNumbers
+              ? (product.sizeStock.filter((s) => (s.quantity || 0) > 0).map((s) => `${s.size}: ${s.quantity}`).join(' · ') || t('storePage.outOfStock'))
+              : t('storePage.inStock')}
           </p>
         ) : hasColorVariants && activeVariant ? (
           <p className="product-page-stock">
-            {product.colorVariants.filter((v) => (v.quantity ?? 0) > 0).map((v) => `${v.color}: ${v.quantity}`).join(' · ') || t('storePage.outOfStock')}
+            {canViewStockNumbers
+              ? (product.colorVariants.filter((v) => (v.quantity ?? 0) > 0).map((v) => `${v.color}: ${v.quantity}`).join(' · ') || t('storePage.outOfStock'))
+              : t('storePage.inStock')}
           </p>
         ) : (
           <p className="product-page-stock">
-            {product.stockQuantity > 0 ? `${t('storePage.inStock')}: ${product.stockQuantity}` : t('storePage.outOfStock')}
+            {product.stockQuantity > 0
+              ? (canViewStockNumbers ? `${t('storePage.inStock')}: ${product.stockQuantity}` : t('storePage.inStock'))
+              : t('storePage.outOfStock')}
           </p>
         )}
         <div className="product-page-actions">
@@ -201,7 +208,9 @@ export default function ProductPage() {
               >
                 <option value="">{weightStore ? t('storePage.weight') : t('addProduct.size')}</option>
                 {product.sizeStock.filter((s) => (s.quantity || 0) > 0).map((s) => (
-                  <option key={s.size} value={s.size}>{s.size} ({s.quantity})</option>
+                  <option key={s.size} value={s.size}>
+                    {canViewStockNumbers ? `${s.size} (${s.quantity})` : s.size}
+                  </option>
                 ))}
               </select>
               <button
