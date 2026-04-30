@@ -7,6 +7,42 @@ const API_BASE = (import.meta.env.VITE_API_URL && String(import.meta.env.VITE_AP
   ? String(import.meta.env.VITE_API_URL).trim().replace(/\/$/, '')
   : (isLocalDevHost ? '/api' : DEFAULT_PROD_API_URL);
 
+function apiOrigin() {
+  if (API_BASE.startsWith('http://') || API_BASE.startsWith('https://')) {
+    return API_BASE.replace(/\/api$/, '');
+  }
+  if (typeof window !== 'undefined') return window.location.origin;
+  return '';
+}
+
+function toAbsoluteAssetUrl(url) {
+  const value = typeof url === 'string' ? url.trim() : '';
+  if (!value) return '';
+  if (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('data:')) return value;
+  if (value.startsWith('/')) return `${apiOrigin()}${value}`;
+  return value;
+}
+
+function normalizeProductAssets(product) {
+  if (!product || typeof product !== 'object') return product;
+  const imageUrls = Array.isArray(product.imageUrls)
+    ? product.imageUrls.map(toAbsoluteAssetUrl).filter(Boolean)
+    : [];
+  const colorVariants = Array.isArray(product.colorVariants)
+    ? product.colorVariants.map((variant) => ({
+        ...variant,
+        imageUrls: Array.isArray(variant?.imageUrls)
+          ? variant.imageUrls.map(toAbsoluteAssetUrl).filter(Boolean)
+          : [],
+      }))
+    : product.colorVariants;
+  return {
+    ...product,
+    imageUrls,
+    colorVariants,
+  };
+}
+
 function getToken() {
   return localStorage.getItem('token');
 }
@@ -37,19 +73,24 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 20000) {
 export async function getStores() {
   const res = await fetch(`${API_BASE}/stores`, { headers: headers(false) });
   if (!res.ok) throw new Error('Failed to load stores');
-  return res.json();
+  const data = await res.json();
+  return Array.isArray(data)
+    ? data.map((store) => ({ ...store, iconUrl: toAbsoluteAssetUrl(store?.iconUrl) || '' }))
+    : [];
 }
 
 export async function getStoreBySlug(slug) {
   const res = await fetch(`${API_BASE}/stores/${encodeURIComponent(slug)}`, { headers: headers(false) });
   if (!res.ok) throw new Error('Store not found');
-  return res.json();
+  const data = await res.json();
+  return { ...data, iconUrl: toAbsoluteAssetUrl(data?.iconUrl) || '' };
 }
 
 export async function getStoreById(id) {
   const res = await fetch(`${API_BASE}/stores/id/${id}`, { headers: headers(false) });
   if (!res.ok) throw new Error('Store not found');
-  return res.json();
+  const data = await res.json();
+  return { ...data, iconUrl: toAbsoluteAssetUrl(data?.iconUrl) || '' };
 }
 
 export async function getProducts(storeId, categoryId = null) {
@@ -57,13 +98,15 @@ export async function getProducts(storeId, categoryId = null) {
   if (categoryId) url += `?categoryId=${categoryId}`;
   const res = await fetch(url, { headers: headers(false) });
   if (!res.ok) throw new Error('Failed to load products');
-  return res.json();
+  const data = await res.json();
+  return Array.isArray(data) ? data.map(normalizeProductAssets) : [];
 }
 
 export async function getProductById(id) {
   const res = await fetch(`${API_BASE}/products/${encodeURIComponent(id)}`, { headers: headers(false) });
   if (!res.ok) throw new Error('Product not found');
-  return res.json();
+  const data = await res.json();
+  return normalizeProductAssets(data);
 }
 
 export async function login(email, password) {
@@ -137,7 +180,8 @@ export async function createStore(name, category, iconUrl = '') {
     }
     throw new Error(data.error || data.message || 'Failed to create store');
   }
-  return res.json();
+  const data = await res.json();
+  return { ...data, iconUrl: toAbsoluteAssetUrl(data?.iconUrl) || '' };
 }
 
 export async function updateStore(id, name, category, iconUrl = '') {
@@ -149,7 +193,8 @@ export async function updateStore(id, name, category, iconUrl = '') {
     body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error('Failed to update store');
-  return res.json();
+  const data = await res.json();
+  return { ...data, iconUrl: toAbsoluteAssetUrl(data?.iconUrl) || '' };
 }
 
 export async function deleteStore(id) {
@@ -174,7 +219,8 @@ export async function addProduct(data) {
     }
     throw new Error(body.error || 'Failed to add product');
   }
-  return res.json();
+  const body = await res.json();
+  return normalizeProductAssets(body);
 }
 
 export async function updateProduct(id, data) {
@@ -191,7 +237,8 @@ export async function updateProduct(id, data) {
     }
     throw new Error(body.error || body.message || 'Failed to update product');
   }
-  return res.json();
+  const body = await res.json();
+  return normalizeProductAssets(body);
 }
 
 export async function deleteProduct(id) {
@@ -322,5 +369,5 @@ export async function uploadImage(file) {
     throw new Error(data.error || 'Upload failed');
   }
   const data = await res.json();
-  return data.url;
+  return toAbsoluteAssetUrl(data.url);
 }
