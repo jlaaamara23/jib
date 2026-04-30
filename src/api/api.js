@@ -18,7 +18,23 @@ function apiOrigin() {
 function toAbsoluteAssetUrl(url) {
   const value = typeof url === 'string' ? url.trim() : '';
   if (!value) return '';
-  if (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('data:')) return value;
+  if (value.startsWith('data:')) return value;
+  if (value.startsWith('http://') || value.startsWith('https://')) {
+    try {
+      const parsed = new URL(value);
+      const isLocalhost = parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
+      if (isLocalhost && parsed.pathname.startsWith('/uploads/')) {
+        return `${apiOrigin()}${parsed.pathname}`;
+      }
+      if (typeof window !== 'undefined' && window.location.protocol === 'https:' && parsed.protocol === 'http:') {
+        parsed.protocol = 'https:';
+        return parsed.toString();
+      }
+      return parsed.toString();
+    } catch {
+      return value;
+    }
+  }
   if (value.startsWith('/')) return `${apiOrigin()}${value}`;
   return value;
 }

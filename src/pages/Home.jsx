@@ -35,6 +35,7 @@ export default function Home() {
   const [addedProductId, setAddedProductId] = useState(null)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [isGridAnimating, setIsGridAnimating] = useState(false)
+  const [brokenImageByProduct, setBrokenImageByProduct] = useState({})
 
   useEffect(() => {
     const loadHomeData = async () => {
@@ -176,11 +177,18 @@ export default function Home() {
                 const firstColorImage = product.colorVariants?.find((variant) => variant.imageUrls?.length > 0)?.imageUrls?.[0]
                 const fallbackImage = product.imageUrls?.[0]
                 const imageUrl = firstColorImage || fallbackImage || ''
+                const imageBroken = brokenImageByProduct[product.id]
                 return (
                   <article key={product.id} className="feed-card glass">
                     <Link to={`/product/${product.id}?store=${encodeURIComponent(product.storeSlug)}`} className="feed-card-media-link">
-                      {imageUrl ? (
-                        <img src={imageUrl} alt={product.name} className="feed-card-image" />
+                      {imageUrl && !imageBroken ? (
+                        <img
+                          src={imageUrl}
+                          alt={product.name}
+                          className="feed-card-image"
+                          loading="lazy"
+                          onError={() => setBrokenImageByProduct((prev) => ({ ...prev, [product.id]: true }))}
+                        />
                       ) : (
                         <div className="feed-card-image-placeholder">{t('storePage.noImage')}</div>
                       )}

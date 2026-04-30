@@ -522,4 +522,27 @@
     border-radius: 999px;
     padding: 0.45rem 0.9rem;
   }
+
+  .product-feed-grid {
+    grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+    gap: 0.85rem;
+  }
+
+  .feed-card-image,
+  .feed-card-image-placeholder {
+    height: 150px;
+  }
+
+  .feed-card-content {
+    padding: 0.8rem;
+  }
+
+  .feed-card-meta {
+    gap: 0.5rem;
+  }
+
+  .quick-add-btn {
+    font-size: 0.72rem;
+    padding: 0.35rem 0.65rem;
+  }
 }
