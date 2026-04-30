@@ -11,7 +11,12 @@ function apiOrigin() {
   if (API_BASE.startsWith('http://') || API_BASE.startsWith('https://')) {
     return API_BASE.replace(/\/api$/, '');
   }
-  if (typeof window !== 'undefined') return window.location.origin;
+  if (typeof window !== 'undefined') {
+    // In production, relative API base can still happen from env mismatch.
+    // Use known backend origin for uploaded assets instead of frontend origin.
+    if (!isLocalDevHost) return DEFAULT_PROD_API_URL.replace(/\/api$/, '');
+    return window.location.origin;
+  }
   return '';
 }
 
@@ -24,6 +29,9 @@ function toAbsoluteAssetUrl(url) {
       const parsed = new URL(value);
       const isLocalhost = parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
       if (isLocalhost && parsed.pathname.startsWith('/uploads/')) {
+        return `${apiOrigin()}${parsed.pathname}`;
+      }
+      if (typeof window !== 'undefined' && parsed.hostname === window.location.hostname && parsed.pathname.startsWith('/uploads/')) {
         return `${apiOrigin()}${parsed.pathname}`;
       }
       if (typeof window !== 'undefined' && window.location.protocol === 'https:' && parsed.protocol === 'http:') {
@@ -358,8 +366,11 @@ export async function confirmPayment(paymentIntentId, orderIds) {
   if (!res.ok) throw new Error('Failed to confirm payment');
 }
 
-export async function getProfile() {
-  const res = await fetch(`${API_BASE}/auth/me`, { headers: headers() });
+export async function getProfile(authToken = null) {
+  const token = authToken || getToken();
+  const h = { 'Content-Type': 'application/json' };
+  if (token) h['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(`${API_BASE}/auth/me`, { headers: h });
   if (!res.ok) throw new Error('Not authenticated');
   return res.json();
 }

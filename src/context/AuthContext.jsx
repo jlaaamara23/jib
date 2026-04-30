@@ -38,7 +38,8 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     const data = await api.login(email, password)
     setToken(data.token)
-    const profile = await api.getProfile()
+    localStorage.setItem('token', data.token)
+    const profile = await api.getProfile(data.token)
     const role = profile.role != null ? String(profile.role).toUpperCase().replace(/^ROLE_/, '') : null
     setUser({ id: profile.id, email: profile.email, phone: profile.phone || null, role: role || null })
     return data
@@ -48,7 +49,8 @@ export function AuthProvider({ children }) {
     const data = await api.register(email, password, role, phone)
     if (data.token) {
       setToken(data.token)
-      const profile = await api.getProfile()
+      localStorage.setItem('token', data.token)
+      const profile = await api.getProfile(data.token)
       const profileRole = profile.role != null ? String(profile.role).toUpperCase().replace(/^ROLE_/, '') : null
       setUser({ id: profile.id, email: profile.email, phone: profile.phone || null, role: profileRole || null })
     }

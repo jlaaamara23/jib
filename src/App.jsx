@@ -10,9 +10,27 @@ import Cart from './pages/Cart'
 import MyOrders from './pages/MyOrders'
 import AddProduct from './pages/AddProduct'
 import CreateStore from './pages/CreateStore'
-function Protected({ children, requireAuth = true }) {
+
+function parseRoleFromToken(token) {
+  try {
+    const payloadBase64 = token.split('.')[1]
+    if (!payloadBase64) return ''
+    const normalized = payloadBase64.replace(/-/g, '+').replace(/_/g, '/')
+    const decoded = JSON.parse(window.atob(normalized))
+    const role = typeof decoded?.role === 'string' ? decoded.role : ''
+    return role.toUpperCase().replace(/^ROLE_/, '')
+  } catch {
+    return ''
+  }
+}
+
+function Protected({ children, requireAuth = true, requireManager = false }) {
   const token = localStorage.getItem('token')
   if (requireAuth && !token) return <Navigate to="/login" replace />
+  if (requireManager) {
+    const role = parseRoleFromToken(token || '')
+    if (role !== 'ADMIN' && role !== 'OWNER') return <Navigate to="/" replace />
+  }
   return children
 }
 
@@ -28,8 +46,8 @@ export default function App() {
         <Route path="verify-email" element={<VerifyEmail />} />
         <Route path="cart" element={<Protected><Cart /></Protected>} />
         <Route path="orders" element={<Protected><MyOrders /></Protected>} />
-        <Route path="add-product" element={<Protected><AddProduct /></Protected>} />
-        <Route path="create-store" element={<Protected><CreateStore /></Protected>} />
+        <Route path="add-product" element={<Protected requireManager><AddProduct /></Protected>} />
+        <Route path="create-store" element={<Protected requireManager><CreateStore /></Protected>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

@@ -12,6 +12,7 @@ export default function Layout() {
   const { lang, setLang, t } = useLanguage()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
+  const canManageStore = user?.role === 'ADMIN' || user?.role === 'OWNER'
 
   const handleLogout = () => {
     logout()
@@ -65,7 +66,7 @@ export default function Layout() {
           {isAuthenticated ? (
             <>
               <Link to="/orders" className="nav-link" onClick={closeMenu}>{t('nav.myOrders')}</Link>
-              {isAuthenticated && (
+              {canManageStore && (
                 <>
                   <Link to="/create-store" className="nav-link nav-owner" onClick={closeMenu}>{t('nav.createStore')}</Link>
                   <Link to="/add-product" className="nav-link nav-owner" onClick={closeMenu}>{t('nav.addProduct')}</Link>
