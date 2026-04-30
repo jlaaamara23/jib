@@ -45,6 +45,14 @@ export default function Layout() {
         </button>
         <div className={`nav-backdrop ${menuOpen ? 'is-open' : ''}`} onClick={closeMenu} aria-hidden="true" />
         <nav className={`nav ${menuOpen ? 'is-open' : ''}`}>
+          <button
+            type="button"
+            className="nav-close-btn"
+            onClick={closeMenu}
+            aria-label="Close menu"
+          >
+            ×
+          </button>
           <div className="lang-switcher">
             {Object.keys(languageNames).map((l) => (
               <button
