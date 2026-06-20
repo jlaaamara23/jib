@@ -1,28 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { getStores, getProducts } from '../api/api'
 import { useLanguage } from '../context/LanguageContext'
 import { useCart } from '../context/CartContext'
+import { restoreScrollPosition, saveScrollPosition } from '../utils/scrollRestoration'
+import { CATEGORY_EMOJI, FEATURED_CATEGORIES, categoryEmoji } from '../utils/categoryDisplay'
 import './Home.css'
-
-const CATEGORY_ICON_LABELS = {
-  ALL: 'ALL',
-  CLOTHING: 'CL',
-  KITCHEN: 'KT',
-  BEAUTY: 'BY',
-  SPICES: 'SP',
-  GROCERY: 'GR',
-  WOMEN_UNDERWEAR: 'WU',
-  KIDS_UNDERWEAR: 'KU',
-  CHILD_GAME: 'CG',
-  ELECTRONICS: 'EL',
-  HOME_DECOR: 'HD',
-  SPORTS: 'ST',
-  PETS: 'PT',
-  HEALTH: 'HL',
-  TOOLS: 'TL',
-  OFFICE: 'OF',
-}
 
 export default function Home() {
   const { t } = useLanguage()
@@ -36,6 +19,11 @@ export default function Home() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [isGridAnimating, setIsGridAnimating] = useState(false)
   const [brokenImageByProduct, setBrokenImageByProduct] = useState({})
+  const catalogRef = useRef(null)
+
+  useEffect(() => {
+    restoreScrollPosition('/', '')
+  }, [])
 
   useEffect(() => {
     const loadHomeData = async () => {
@@ -83,45 +71,73 @@ export default function Home() {
     window.setTimeout(() => setAddedProductId(null), 700)
   }
 
+  const handleProductNavigate = () => {
+    saveScrollPosition('/', '')
+  }
+
+  const scrollToCatalog = () => {
+    catalogRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const selectCategory = (category) => {
+    setSelectedCategory(category)
+    setMobileFiltersOpen(false)
+    scrollToCatalog()
+  }
+
+  const featuredToShow = FEATURED_CATEGORIES.filter(
+    (cat) => categories.includes(cat) || categories.length === 0,
+  )
+
   return (
     <div className="home">
-      <div className="hero-particles" aria-hidden="true">
-        <span />
-        <span />
-        <span />
-      </div>
-      <section className="home-hero glass">
+      <section className="home-hero">
         <div className="home-hero-copy">
-          <p className="eyebrow">JIBI SMART DELIVERY</p>
-          <h1 className="home-title">Your world, delivered.</h1>
-          <p className="home-subtitle">
-            Futuristic commerce powered by intelligent drone logistics, instant routing, and seamless checkout.
-          </p>
+          <p className="eyebrow">{t('home.heroEyebrow')}</p>
+          <h1 className="home-title">{t('home.heroTitle')}</h1>
+          <p className="home-subtitle">{t('home.heroSubtitle')}</p>
+          <ul className="hero-trust-list">
+            <li><span aria-hidden="true">🍳</span> {t('home.trustKitchen')}</li>
+            <li><span aria-hidden="true">👕</span> {t('home.trustClothing')}</li>
+            <li><span aria-hidden="true">🧸</span> {t('home.trustKids')}</li>
+          </ul>
           <div className="hero-ctas">
-            <button type="button" className="btn btn-gradient">
-              Explore products
+            <button type="button" className="btn btn-primary" onClick={scrollToCatalog}>
+              {t('home.shopNow')}
             </button>
-            <Link to="/cart" className="btn btn-glass">
-              Open cart
+            <Link to="/cart" className="btn btn-secondary">
+              {t('home.viewCart')}
             </Link>
           </div>
+          <p className="hero-delivery-note">🚚 {t('home.homeDelivery')}</p>
         </div>
-        <div className="drone-visual" aria-label="Drone delivery illustration">
-          <div className="drone-body" />
-          <div className="drone-wing wing-left" />
-          <div className="drone-wing wing-right" />
-          <div className="drone-light" />
-          <div className="drone-shadow" />
+
+        <div className="hero-category-panel">
+          <h2 className="hero-category-title">{t('home.shopByCategory')}</h2>
+          <div className="hero-category-grid">
+            {featuredToShow.map((category) => (
+              <button
+                key={category}
+                type="button"
+                className={`hero-category-card ${selectedCategory === category ? 'active' : ''}`}
+                onClick={() => selectCategory(category)}
+              >
+                <span className="hero-category-emoji" aria-hidden="true">{categoryEmoji(category)}</span>
+                <span className="hero-category-name">{t('category.' + category) || category}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </section>
-      <section className="home-stores">
+
+      <section className="home-stores" ref={catalogRef}>
         <div className="home-catalog-layout">
           <button
             type="button"
             className="mobile-filter-btn"
             onClick={() => setMobileFiltersOpen(true)}
           >
-            Filter
+            {t('home.filterBtn')}
           </button>
 
           <div
@@ -130,28 +146,24 @@ export default function Home() {
             aria-hidden="true"
           />
 
-          <aside className={`category-sidebar glass ${mobileFiltersOpen ? 'is-open' : ''}`}>
+          <aside className={`category-sidebar ${mobileFiltersOpen ? 'is-open' : ''}`}>
             <div className="sidebar-header">
-              <h3 className="sidebar-title">Categories</h3>
+              <h3 className="sidebar-title">{t('home.sidebarTitle')}</h3>
               <button
                 type="button"
                 className="sidebar-close"
                 onClick={() => setMobileFiltersOpen(false)}
                 aria-label="Close filters"
               >
-                x
+                ×
               </button>
             </div>
-            <div className="sidebar-divider" />
             <button
               type="button"
               className={`sidebar-category-item ${selectedCategory === 'ALL' ? 'active' : ''}`}
-              onClick={() => {
-                setSelectedCategory('ALL')
-                setMobileFiltersOpen(false)
-              }}
+              onClick={() => selectCategory('ALL')}
             >
-              <span className="category-icon">{CATEGORY_ICON_LABELS.ALL}</span>
+              <span className="category-icon" aria-hidden="true">{CATEGORY_EMOJI.ALL}</span>
               <span className="category-label">{t('home.filterAll')}</span>
             </button>
             {categories.map((category) => (
@@ -159,19 +171,23 @@ export default function Home() {
                 key={category}
                 type="button"
                 className={`sidebar-category-item ${selectedCategory === category ? 'active' : ''}`}
-                onClick={() => {
-                  setSelectedCategory(category)
-                  setMobileFiltersOpen(false)
-                }}
+                onClick={() => selectCategory(category)}
               >
-                <span className="category-icon">{CATEGORY_ICON_LABELS[category] || 'CT'}</span>
+                <span className="category-icon" aria-hidden="true">{categoryEmoji(category)}</span>
                 <span className="category-label">{t('category.' + category) || category}</span>
               </button>
             ))}
           </aside>
 
           <div className="catalog-main-content">
-            <h2 className="section-title">{t('home.productFeed')} ({visibleProducts.length})</h2>
+            <div className="catalog-header">
+              <h2 className="section-title">
+                {selectedCategory === 'ALL'
+                  ? t('home.productFeed')
+                  : (t('category.' + selectedCategory) || selectedCategory)}
+              </h2>
+              <span className="catalog-count">{visibleProducts.length}</span>
+            </div>
             <div className={`product-feed-grid ${isGridAnimating ? 'is-animating' : ''}`}>
               {visibleProducts.map((product) => {
                 const firstColorImage = product.colorVariants?.find((variant) => variant.imageUrls?.length > 0)?.imageUrls?.[0]
@@ -179,8 +195,8 @@ export default function Home() {
                 const imageUrl = firstColorImage || fallbackImage || ''
                 const imageBroken = brokenImageByProduct[product.id]
                 return (
-                  <article key={product.id} className="feed-card glass">
-                    <Link to={`/product/${product.id}?store=${encodeURIComponent(product.storeSlug)}`} className="feed-card-media-link">
+                  <article key={product.id} className="feed-card">
+                    <Link to={`/product/${product.id}?store=${encodeURIComponent(product.storeSlug)}`} className="feed-card-media-link" onClick={handleProductNavigate}>
                       {imageUrl && !imageBroken ? (
                         <img
                           src={imageUrl}
@@ -194,19 +210,21 @@ export default function Home() {
                       )}
                     </Link>
                     <div className="feed-card-content">
-                      <span className="feed-card-category">{t('category.' + product.storeCategory) || product.storeCategory}</span>
-                      <Link to={`/product/${product.id}?store=${encodeURIComponent(product.storeSlug)}`} className="feed-card-name-link">
+                      <span className="feed-card-category">
+                        {categoryEmoji(product.storeCategory)} {t('category.' + product.storeCategory) || product.storeCategory}
+                      </span>
+                      <Link to={`/product/${product.id}?store=${encodeURIComponent(product.storeSlug)}`} className="feed-card-name-link" onClick={handleProductNavigate}>
                         <h3 className="feed-card-name">{product.name}</h3>
                       </Link>
+                      <p className="feed-card-store">{product.storeName}</p>
                       <p className="feed-card-price">₪{Number(product.price).toFixed(2)}</p>
                       <div className="feed-card-meta">
-                        <span className="feed-speed">Drone ETA 12m</span>
                         <button
                           type="button"
                           className={`quick-add-btn ${addedProductId === product.id ? 'is-added' : ''}`}
                           onClick={() => handleQuickAdd(product)}
                         >
-                          {addedProductId === product.id ? 'Added' : 'Add to cart'}
+                          {addedProductId === product.id ? t('home.added') : t('home.addToCart')}
                         </button>
                       </div>
                     </div>

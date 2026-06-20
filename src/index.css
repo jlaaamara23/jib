@@ -1,25 +1,29 @@
 :root {
-  --bg: #060b09;
-  --bg-subtle: #0d1412;
-  --surface: #151f1c;
-  --surface-hover: #1f2d28;
-  --border: #293934;
-  --border-light: #395148;
-  --text: #f5fbff;
-  --text-muted: #96a8b4;
-  --text-dim: #6f838e;
-  --accent: #38d7a8;
-  --accent-hover: #5de3be;
-  --accent-soft: rgba(56, 215, 168, 0.16);
-  --success: #4ade80;
-  --success-soft: rgba(74, 222, 128, 0.15);
-  --danger: #f87171;
-  --danger-soft: rgba(248, 113, 113, 0.15);
-  --radius: 10px;
-  --radius-lg: 14px;
-  --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-head: 'Poppins', system-ui, sans-serif;
+  --bg: #faf7f2;
+  --bg-subtle: #f3efe8;
+  --surface: #ffffff;
+  --surface-hover: #f8f4ee;
+  --border: #e8dfd4;
+  --border-light: #d9cfc2;
+  --text: #2c2419;
+  --text-muted: #6b5e52;
+  --text-dim: #8a7b6c;
+  --accent: #c45c26;
+  --accent-hover: #a84a1c;
+  --accent-soft: rgba(196, 92, 38, 0.12);
+  --accent-secondary: #2d6a4f;
+  --accent-secondary-hover: #245a42;
+  --accent-secondary-soft: rgba(45, 106, 79, 0.12);
+  --success: #2d6a4f;
+  --success-soft: rgba(45, 106, 79, 0.12);
+  --danger: #c0392b;
+  --danger-soft: rgba(192, 57, 43, 0.1);
+  --radius: 12px;
+  --radius-lg: 16px;
+  --shadow: 0 4px 24px rgba(44, 36, 25, 0.08);
+  --shadow-lg: 0 12px 40px rgba(44, 36, 25, 0.12);
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-head: 'Outfit', system-ui, sans-serif;
 }
 
 * {
@@ -29,10 +33,7 @@
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background:
-    radial-gradient(circle at 12% 6%, rgba(66, 255, 190, 0.17), transparent 36%),
-    radial-gradient(circle at 84% 12%, rgba(106, 152, 255, 0.14), transparent 28%),
-    linear-gradient(160deg, #050909 0%, #071410 50%, #090b12 100%);
+  background: var(--bg);
   color: var(--text);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -70,7 +71,44 @@ textarea {
   font-family: inherit;
 }
 
-/* Shared page utilities */
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.65rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 4px 16px rgba(196, 92, 38, 0.25);
+}
+
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.65rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.btn-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  text-decoration: none;
+  background: var(--accent-soft);
+}
+
 .page-loading,
 .page-error,
 .empty {
@@ -93,7 +131,6 @@ textarea {
   font-size: 0.95rem;
 }
 
-/* RTL (Hebrew, Arabic) */
 [dir="rtl"] body,
 [dir="rtl"] #root {
   text-align: right;
@@ -115,7 +152,6 @@ html[dir="rtl"][lang="he"] {
   flex-direction: row-reverse;
 }
 
-/* Only reverse nav on desktop; mobile uses column layout in Layout.css */
 @media (min-width: 768px) {
   [dir="rtl"] .nav {
     flex-direction: row-reverse;

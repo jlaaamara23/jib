@@ -8,6 +8,12 @@
   color: var(--text-muted);
   text-decoration: none;
   font-size: 0.9rem;
+  background: none;
+  border: none;
+  padding: 0.35rem 0;
+  min-height: 44px;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .store-back:hover {
@@ -20,6 +26,11 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+  padding: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
 }
 
 .store-header-icon-wrap {
@@ -560,4 +571,33 @@
 
 .page-error {
   color: var(--danger);
+}
+
+@media (max-width: 640px) {
+  .products-grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .product-card {
+    padding: 1rem;
+  }
+
+  .product-card-image {
+    max-height: 220px;
+    object-fit: contain;
+  }
+
+  .product-size-select,
+  .product-card .btn {
+    min-height: 44px;
+  }
+
+  .store-header {
+    flex-wrap: wrap;
+  }
+
+  .store-page-title {
+    font-size: 1.35rem;
+  }
 }

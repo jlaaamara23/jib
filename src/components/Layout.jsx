@@ -3,10 +3,12 @@ import { Outlet, Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { useLanguage } from '../context/LanguageContext'
+import { useScrollRestoration } from '../hooks/useScrollRestoration'
 import { languageNames } from '../i18n/translations'
 import './Layout.css'
 
 export default function Layout() {
+  useScrollRestoration()
   const { isAuthenticated, logout, user } = useAuth()
   const { totalItems } = useCart()
   const { lang, setLang, t } = useLanguage()
@@ -31,7 +33,7 @@ export default function Layout() {
     <div className="layout">
       <header className="header">
         <Link to="/" className="logo" onClick={closeMenu}>
-          <span className="logo-icon">◇</span>
+          <span className="logo-icon">🛍️</span>
           {t('nav.appName')}
         </Link>
         <button

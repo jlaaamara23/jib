@@ -10,13 +10,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.875rem 1.5rem;
-  background: rgba(16, 24, 23, 0.62);
-  border-bottom: 1px solid rgba(130, 197, 169, 0.2);
-  backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
   flex-shrink: 0;
   position: sticky;
   top: 0;
   z-index: 120;
+  box-shadow: 0 1px 0 rgba(44, 36, 25, 0.04);
 }
 
 .logo {
@@ -37,8 +38,8 @@
 }
 
 .logo-icon {
-  color: #6df4d3;
-  font-size: 1rem;
+  color: var(--accent);
+  font-size: 1.15rem;
 }
 
 .nav {
@@ -80,11 +81,10 @@
   padding: 0 0.3rem;
   font-size: 0.7rem;
   font-weight: 700;
-  background: linear-gradient(120deg, #34f0b0, #4a89ff, #b065ff);
+  background: var(--accent);
   color: #ffffff;
   border-radius: 999px;
   margin-left: 0.35rem;
-  box-shadow: 0 0 14px rgba(90, 181, 255, 0.6);
 }
 
 .user-email {
@@ -115,19 +115,19 @@
 }
 
 .btn-accent {
-  background: linear-gradient(100deg, #1ddf95, #3f96ff 55%, #934dff);
+  background: var(--accent);
   color: #ffffff;
 }
 
 .btn-accent:hover {
-  box-shadow: 0 0 20px rgba(91, 181, 255, 0.42);
+  background: var(--accent-hover);
   color: #ffffff;
 }
 
 .main {
   flex: 1;
-  padding: 2rem 1.5rem;
-  max-width: 1100px;
+  padding: 1.5rem 1.5rem 2.5rem;
+  max-width: 1200px;
   margin: 0 auto;
   width: 100%;
 }
@@ -350,5 +350,11 @@
 @media (max-width: 480px) {
   .main {
     padding: 1rem 0.75rem;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+
+  .header {
+    padding-left: max(0.75rem, env(safe-area-inset-left));
+    padding-right: max(0.75rem, env(safe-area-inset-right));
   }
 }

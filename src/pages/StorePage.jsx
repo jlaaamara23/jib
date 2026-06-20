@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { lineUnitPrice, usesWeightPricing } from '../utils/weightPrice'
+import { canGoBackInApp, restoreScrollPosition, saveScrollPosition } from '../utils/scrollRestoration'
 import './StorePage.css'
 
 const STORE_CATEGORIES = [
@@ -91,6 +92,10 @@ export default function StorePage() {
 
   useEffect(() => {
     loadStore()
+  }, [slug])
+
+  useEffect(() => {
+    restoreScrollPosition(`/store/${slug}`, '')
   }, [slug])
 
   useEffect(() => {
@@ -336,9 +341,24 @@ export default function StorePage() {
   if (loading) return <div className="page-loading">{t('storePage.loading')}</div>
   if (error || !store) return <div className="page-error">{error || 'Store not found'}</div>
 
+  const handleBack = (event) => {
+    event.preventDefault()
+    if (canGoBackInApp()) {
+      navigate(-1)
+    } else {
+      navigate('/')
+    }
+  }
+
+  const handleProductNavigate = () => {
+    saveScrollPosition(`/store/${slug}`, '')
+  }
+
   return (
     <div className="store-page">
-      <Link to="/" className="store-back">← {t('storePage.allStores')}</Link>
+      <button type="button" className="store-back" onClick={handleBack}>
+        ← {t('storePage.allStores')}
+      </button>
       <header className="store-header">
         <div className="store-header-icon-wrap">
           {store.iconUrl ? (
@@ -401,7 +421,7 @@ export default function StorePage() {
               </div>
             )}
             <h3 className="product-name">
-              <Link to={`/product/${p.id}?store=${encodeURIComponent(slug)}`} className="product-name-link">{p.name}</Link>
+              <Link to={`/product/${p.id}?store=${encodeURIComponent(slug)}`} className="product-name-link" onClick={handleProductNavigate}>{p.name}</Link>
             </h3>
             {p.description && <p className="product-desc">{p.description}</p>}
             <p className="product-price">

@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { getProductById, getStoreById, getStoreBySlug, getProducts, getStores } from '../api/api'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { lineUnitPrice, usesWeightPricing } from '../utils/weightPrice'
+import { canGoBackInApp } from '../utils/scrollRestoration'
 import './ProductPage.css'
 
 export default function ProductPage() {
   const { productId } = useParams()
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const storeFromQuery = searchParams.get('store') || ''
   const { t } = useLanguage()
@@ -128,9 +130,20 @@ export default function ProductPage() {
   const weightStore = usesWeightPricing(store.category)
   const canViewStockNumbers = user?.role === 'ADMIN' || user?.role === 'OWNER'
 
+  const handleBack = (event) => {
+    event.preventDefault()
+    if (canGoBackInApp()) {
+      navigate(-1)
+    } else {
+      navigate('/')
+    }
+  }
+
   return (
     <div className="product-page">
-      <Link to="/" className="product-page-back">← {t('home.title')}</Link>
+      <button type="button" className="product-page-back" onClick={handleBack}>
+        ← {t('home.title')}
+      </button>
       <Link to={`/store/${store.slug}`} className="product-page-store-link">
         {store.name}
       </Link>
