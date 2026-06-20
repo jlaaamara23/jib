@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { getStores, getProducts } from '../api/api'
 import { useLanguage } from '../context/LanguageContext'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 import { restoreScrollPosition, saveScrollPosition } from '../utils/scrollRestoration'
 import { CATEGORY_EMOJI, FEATURED_CATEGORIES, categoryEmoji } from '../utils/categoryDisplay'
 import './Home.css'
@@ -10,6 +11,8 @@ import './Home.css'
 export default function Home() {
   const { t } = useLanguage()
   const { addToCart } = useCart()
+  const { isAdmin, user } = useAuth()
+  const canManage = isAdmin || user?.role === 'OWNER'
   const [stores, setStores] = useState([])
   const [productFeed, setProductFeed] = useState([])
   const [selectedCategory, setSelectedCategory] = useState('ALL')
@@ -235,7 +238,17 @@ export default function Home() {
           </div>
         </div>
         {stores.length === 0 && (
-          <p className="empty">{t('home.noStores')} <Link to="/register">{t('nav.signUp')}</Link> {t('home.signUpAsOwner')}</p>
+          canManage ? (
+            <div className="empty admin-empty">
+              <p>{t('home.adminNoStores')}</p>
+              <div className="admin-empty-actions">
+                <Link to="/create-store" className="btn btn-primary">{t('nav.createStore')}</Link>
+                <Link to="/add-product" className="btn btn-secondary">{t('nav.addProduct')}</Link>
+              </div>
+            </div>
+          ) : (
+            <p className="empty">{t('home.noStores')} <Link to="/register">{t('nav.signUp')}</Link> {t('home.signUpAsOwner')}</p>
+          )
         )}
         {stores.length > 0 && visibleProducts.length === 0 && (
           <p className="empty">{t('home.noProductsForCategory')}</p>

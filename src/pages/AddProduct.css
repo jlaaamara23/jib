@@ -89,8 +89,25 @@
 
 .form-image-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   align-items: center;
+}
+
+.input-image-url {
+  flex: 1 1 100%;
+  min-width: 0;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.input-image-url:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 
 .form-image-row input.input-file {

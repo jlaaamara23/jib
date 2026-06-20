@@ -324,6 +324,13 @@ export default function AddProduct() {
           {imageUrls.map((url, index) => (
             <div key={index} className="form-image-row">
               <input
+                type="url"
+                value={url}
+                onChange={(e) => setImageUrlAt(index, e.target.value)}
+                placeholder="https://res.cloudinary.com/... or upload a file"
+                className="input-image-url"
+              />
+              <input
                 ref={(el) => { fileInputRefs.current[index] = el }}
                 type="file"
                 accept="image/*"

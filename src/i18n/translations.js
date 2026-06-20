@@ -36,6 +36,7 @@ export const translations = {
       noProductsForCategory: 'No products found in this category yet.',
       signUpAsOwner: 'Sign up as a store owner to create one.',
       loadingStores: 'Loading stores…',
+      adminNoStores: 'Your shop is empty. Create a store first, then add products with your photos.',
     },
     category: {
       KITCHEN: 'Kitchen',
@@ -233,6 +234,7 @@ export const translations = {
       noProductsForCategory: 'עדיין אין מוצרים בקטגוריה זו.',
       signUpAsOwner: 'הירשם כבעל חנות כדי ליצור אחת.',
       loadingStores: 'טוען חנויות…',
+      adminNoStores: 'החנות ריקה. צור חנות קודם, ואז הוסף מוצרים עם התמונות שלך.',
     },
     category: {
       KITCHEN: 'מטבח',
@@ -430,6 +432,7 @@ export const translations = {
       noProductsForCategory: 'لا توجد منتجات في هذه الفئة بعد.',
       signUpAsOwner: 'سجّل كصاحب متجر لإنشاء متجر.',
       loadingStores: 'جاري تحميل المتاجر…',
+      adminNoStores: 'متجرك فارغ. أنشئ متجراً أولاً، ثم أضف المنتجات مع صورك.',
     },
     category: {
       KITCHEN: 'مطبخ',

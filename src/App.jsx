@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { useAuth } from './context/AuthContext'
 import Layout from './components/Layout'
 import Home from './pages/Home'
 import StorePage from './pages/StorePage'
@@ -11,26 +12,24 @@ import MyOrders from './pages/MyOrders'
 import AddProduct from './pages/AddProduct'
 import CreateStore from './pages/CreateStore'
 
-function parseRoleFromToken(token) {
-  try {
-    const payloadBase64 = token.split('.')[1]
-    if (!payloadBase64) return ''
-    const normalized = payloadBase64.replace(/-/g, '+').replace(/_/g, '/')
-    const decoded = JSON.parse(window.atob(normalized))
-    const role = typeof decoded?.role === 'string' ? decoded.role : ''
-    return role.toUpperCase().replace(/^ROLE_/, '')
-  } catch {
-    return ''
-  }
-}
-
 function Protected({ children, requireAuth = true, requireManager = false }) {
-  const token = localStorage.getItem('token')
-  if (requireAuth && !token) return <Navigate to="/login" replace />
-  if (requireManager) {
-    const role = parseRoleFromToken(token || '')
-    if (role !== 'ADMIN' && role !== 'OWNER') return <Navigate to="/" replace />
+  const { isAuthenticated, user, loading } = useAuth()
+
+  if (loading) {
+    return <div className="page-loading">Loading…</div>
   }
+
+  if (requireAuth && !isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (requireManager) {
+    const role = user?.role ?? ''
+    if (role !== 'ADMIN' && role !== 'OWNER') {
+      return <Navigate to="/" replace />
+    }
+  }
+
   return children
 }
 
