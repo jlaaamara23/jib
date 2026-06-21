@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigationType } from 'react-router-dom'
 import { getStores, getProducts } from '../api/api'
 import { useLanguage } from '../context/LanguageContext'
 import { useCart } from '../context/CartContext'
@@ -9,6 +9,7 @@ import { CATEGORY_EMOJI, FEATURED_CATEGORIES, categoryEmoji } from '../utils/cat
 import './Home.css'
 
 export default function Home() {
+  const navigationType = useNavigationType()
   const { t } = useLanguage()
   const { addToCart } = useCart()
   const { isAdmin, user } = useAuth()
@@ -25,8 +26,10 @@ export default function Home() {
   const catalogRef = useRef(null)
 
   useEffect(() => {
-    restoreScrollPosition('/', '')
-  }, [])
+    if (!loading && navigationType === 'POP') {
+      restoreScrollPosition('/', '')
+    }
+  }, [loading, navigationType])
 
   useEffect(() => {
     const loadHomeData = async () => {

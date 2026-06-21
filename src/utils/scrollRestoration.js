@@ -18,9 +18,21 @@ export function restoreScrollPosition(pathname, search = '') {
     if (raw == null) return false
     const y = parseInt(raw, 10)
     if (Number.isNaN(y)) return false
-    requestAnimationFrame(() => {
-      window.scrollTo({ top: y, left: 0, behavior: 'auto' })
-    })
+
+    let attempts = 0
+    const maxAttempts = 120
+
+    const tryRestore = () => {
+      const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight)
+      if (maxScroll >= y - 1 || attempts >= maxAttempts) {
+        window.scrollTo({ top: Math.min(y, maxScroll), left: 0, behavior: 'auto' })
+        return
+      }
+      attempts += 1
+      requestAnimationFrame(tryRestore)
+    }
+
+    requestAnimationFrame(tryRestore)
     return true
   } catch {
     return false

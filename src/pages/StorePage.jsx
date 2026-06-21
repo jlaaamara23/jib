@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useParams, Link, useNavigate, useSearchParams, useNavigationType } from 'react-router-dom'
 import { getStoreBySlug, getProducts, updateStore, deleteStore, updateProduct, deleteProduct, uploadImage } from '../api/api'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
@@ -36,6 +36,7 @@ const DEFAULT_SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'XXL']
 
 export default function StorePage() {
   const { slug } = useParams()
+  const navigationType = useNavigationType()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const editFromQueryHandled = useRef(false)
@@ -95,8 +96,10 @@ export default function StorePage() {
   }, [slug])
 
   useEffect(() => {
-    restoreScrollPosition(`/store/${slug}`, '')
-  }, [slug])
+    if (!loading && navigationType === 'POP') {
+      restoreScrollPosition(`/store/${slug}`, '')
+    }
+  }, [loading, navigationType, slug])
 
   useEffect(() => {
     editFromQueryHandled.current = false
@@ -397,11 +400,13 @@ export default function StorePage() {
           return (
           <article key={p.id} className="product-card">
             {displayImages && displayImages.length > 0 ? (
-              <div className="product-card-images">
-                {displayImages.map((url, i) => (
-                  <img key={i} src={url} alt="" className="product-card-image" />
-                ))}
-              </div>
+              <Link to={`/product/${p.id}?store=${encodeURIComponent(slug)}`} className="product-card-images-link" onClick={handleProductNavigate}>
+                <div className="product-card-images">
+                  {displayImages.map((url, i) => (
+                    <img key={i} src={url} alt="" className="product-card-image" />
+                  ))}
+                </div>
+              </Link>
             ) : (
               <div className="product-card-image-placeholder">{t('storePage.noImage')}</div>
             )}

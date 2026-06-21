@@ -89,6 +89,11 @@
   box-shadow: var(--shadow);
 }
 
+.product-card-images-link {
+  text-decoration: none;
+  display: block;
+}
+
 .product-card-images {
   display: flex;
   flex-wrap: wrap;
