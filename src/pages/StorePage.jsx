@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, Link, useNavigate, useSearchParams, useNavigationType } from 'react-router-dom'
-import { getStoreBySlug, getProducts, updateStore, deleteStore, updateProduct, deleteProduct, uploadImage } from '../api/api'
+import { getStoreBySlug, getProducts, updateStore, deleteStore, updateProduct, deleteProduct, uploadImage, publishProduct, unpublishProduct, publishProducts } from '../api/api'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
-import { lineUnitPrice, usesWeightPricing } from '../utils/weightPrice'
+import { hasPrice, isSellable, lineUnitPrice, usesWeightPricing } from '../utils/weightPrice'
 import { canGoBackInApp, restoreScrollPosition, saveScrollPosition } from '../utils/scrollRestoration'
 import './StorePage.css'
 import { STORE_CATEGORIES } from '../utils/categoryDisplay'
@@ -28,6 +28,9 @@ export default function StorePage() {
   const { user } = useAuth()
   const [store, setStore] = useState(null)
   const [products, setProducts] = useState([])
+  const [statusFilter, setStatusFilter] = useState('ALL')
+  const [selectedIds, setSelectedIds] = useState([])
+  const [publishMessage, setPublishMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const { addToCart } = useCart()
@@ -153,7 +156,7 @@ export default function StorePage() {
     setEditProduct(p)
     setEditProductName(p.name)
     setEditProductDesc(p.description || '')
-    setEditProductPrice(String(p.price))
+    setEditProductPrice(hasPrice(p) ? String(p.price) : '')
     setEditProductStock(String(p.stockQuantity ?? 0))
     setEditProductImageUrls(p.imageUrls?.length ? [...p.imageUrls] : [''])
     setEditProductSizeStocks((p.sizeStock?.length ? p.sizeStock : []).map((s) => ({ size: s.size, quantity: String(s.quantity ?? 0) })))
@@ -238,12 +241,14 @@ export default function StorePage() {
     e.preventDefault()
     if (!editProduct) return
     const trimmedName = editProductName.trim()
-    const parsedPrice = Number(editProductPrice)
+    const isDraft = editProduct.status === 'DRAFT'
+    const priceEmpty = String(editProductPrice ?? '').trim() === ''
+    const parsedPrice = priceEmpty ? null : Number(editProductPrice)
     if (!trimmedName) {
       setEditModalError('Please enter product name.')
       return
     }
-    if (Number.isNaN(parsedPrice) || parsedPrice <= 0) {
+    if (!(isDraft && priceEmpty) && (Number.isNaN(parsedPrice) || parsedPrice <= 0)) {
       setEditModalError('Please enter a valid price greater than 0.')
       return
     }
@@ -313,7 +318,7 @@ export default function StorePage() {
         storeId: store.id,
         name: (p.name || '').trim(),
         description: p.description || null,
-        price: Number(p.price),
+        price: hasPrice(p) ? Number(p.price) : null,
         stockQuantity: totalFromSizes > 0 ? totalFromSizes : Math.max(0, parseInt(p.stockQuantity, 10) || 0),
         imageUrls: null,
         sizeStocks: sizeStocksPayload.length > 0 ? sizeStocksPayload : null,
@@ -324,6 +329,42 @@ export default function StorePage() {
       setError(err.message || 'Failed to remove image')
     }
   }
+
+  const togglePublished = async (p) => {
+    setPublishMessage('')
+    try {
+      if (p.status === 'DRAFT') await publishProduct(p.id)
+      else await unpublishProduct(p.id)
+      loadStore()
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
+  const publishSelected = async () => {
+    if (selectedIds.length === 0) return
+    setPublishMessage('')
+    try {
+      const result = await publishProducts(selectedIds)
+      setPublishMessage(
+        t('storePage.publishResult')
+          .replace('{ok}', String(result.published?.length || 0))
+          .replace('{failed}', String(result.failed?.length || 0)),
+      )
+      setSelectedIds([])
+      loadStore()
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
+  const toggleSelected = (id) =>
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+
+  const visibleProducts = products.filter((p) =>
+    statusFilter === 'ALL' ? true : statusFilter === 'DRAFT' ? p.status === 'DRAFT' : p.status !== 'DRAFT',
+  )
+  const draftCount = products.filter((p) => p.status === 'DRAFT').length
 
   if (loading) return <div className="page-loading">{t('storePage.loading')}</div>
   if (error || !store) return <div className="page-error">{error || 'Store not found'}</div>
@@ -370,8 +411,39 @@ export default function StorePage() {
         </div>
       </header>
 
+      {canManage && (
+        <div className="draft-toolbar">
+          <div className="draft-filter" role="group">
+            {['ALL', 'DRAFT', 'PUBLISHED'].map((f) => (
+              <button
+                key={f}
+                type="button"
+                className={`btn btn-sm ${statusFilter === f ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setStatusFilter(f)}
+              >
+                {f === 'ALL' ? t('storePage.filterAll') : f === 'DRAFT' ? `${t('storePage.filterDrafts')} (${draftCount})` : t('storePage.filterPublished')}
+              </button>
+            ))}
+          </div>
+          <div className="draft-bulk">
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              disabled={draftCount === 0}
+              onClick={() => setSelectedIds(products.filter((p) => p.status === 'DRAFT').map((p) => p.id))}
+            >
+              {t('storePage.selectDrafts')}
+            </button>
+            <button type="button" className="btn btn-primary btn-sm" disabled={selectedIds.length === 0} onClick={publishSelected}>
+              {t('storePage.publishSelected')} ({selectedIds.length})
+            </button>
+          </div>
+          {publishMessage && <p className="draft-message">{publishMessage}</p>}
+        </div>
+      )}
+
       <div className="products-grid">
-        {products.map((p) => {
+        {visibleProducts.map((p) => {
           const weightStore = usesWeightPricing(store.category)
           const hasColorVariants = p.colorVariants && p.colorVariants.length > 0
           const selectedColor = selectedColors[p.id]
@@ -382,7 +454,13 @@ export default function StorePage() {
             ? activeVariant.imageUrls
             : (p.imageUrls && p.imageUrls.length > 0 ? p.imageUrls : null)
           return (
-          <article key={p.id} className="product-card">
+          <article key={p.id} className={`product-card ${p.status === 'DRAFT' ? 'is-draft' : ''}`}>
+            {canManage && p.status === 'DRAFT' && (
+              <label className="draft-badge">
+                <input type="checkbox" checked={selectedIds.includes(p.id)} onChange={() => toggleSelected(p.id)} />
+                {t('storePage.draft')}
+              </label>
+            )}
             {displayImages && displayImages.length > 0 ? (
               <Link to={`/product/${p.id}?store=${encodeURIComponent(slug)}`} className="product-card-images-link" onClick={handleProductNavigate}>
                 <div className="product-card-images">
@@ -414,7 +492,7 @@ export default function StorePage() {
             </h3>
             {p.description && <p className="product-desc">{p.description}</p>}
             <p className="product-price">
-              ₪{Number(p.price).toFixed(2)}
+              {hasPrice(p) ? `₪${Number(p.price).toFixed(2)}` : <span className="product-no-price">{t('storePage.noPrice')}</span>}
               {weightStore && p.sizeStock?.length ? <span className="product-price-per-kg">{t('storePage.perKg')}</span> : null}
             </p>
             {weightStore && p.sizeStock?.length && selectedSizes[p.id] ? (
@@ -459,7 +537,7 @@ export default function StorePage() {
                   <button
                     type="button"
                     className="btn btn-primary"
-                    disabled={!selectedSizes[p.id]}
+                    disabled={!selectedSizes[p.id] || !isSellable(p)}
                     onClick={() => addToCart({ ...p, storeId: store.id, storeName: store.name, storeCategory: store.category }, 1, selectedSizes[p.id], hasColorVariants ? selectedColor || activeVariant?.color : null)}
                   >
                     {t('storePage.addToCart')}
@@ -469,7 +547,7 @@ export default function StorePage() {
                 <button
                   type="button"
                   className="btn btn-primary"
-                  disabled={hasColorVariants ? ((activeVariant?.quantity ?? 0) <= 0) : (p.stockQuantity <= 0)}
+                  disabled={!isSellable(p) || (hasColorVariants ? ((activeVariant?.quantity ?? 0) <= 0) : (p.stockQuantity <= 0))}
                   onClick={() => addToCart({ ...p, storeId: store.id, storeName: store.name, storeCategory: store.category }, 1, null, hasColorVariants ? selectedColor || activeVariant?.color : null)}
                 >
                   {t('storePage.addToCart')}
@@ -477,6 +555,17 @@ export default function StorePage() {
               )}
               {isLoggedIn && (
                 <div className="product-manage">
+                  {canManage && (
+                    <button
+                      type="button"
+                      className={`btn btn-sm ${p.status === 'DRAFT' ? 'btn-primary' : 'btn-secondary'}`}
+                      onClick={() => togglePublished(p)}
+                      disabled={p.status === 'DRAFT' && !hasPrice(p)}
+                      title={p.status === 'DRAFT' && !hasPrice(p) ? t('storePage.noPrice') : ''}
+                    >
+                      {p.status === 'DRAFT' ? t('storePage.publish') : t('storePage.unpublish')}
+                    </button>
+                  )}
                   {canManage && (
                     <button type="button" className="btn btn-secondary btn-sm" onClick={() => removeProductImages(p)}>
                       Remove image
@@ -647,7 +736,7 @@ export default function StorePage() {
               </div>
               <label>
                 {t('addProduct.price')}
-                <input type="number" step="0.01" min="0.01" value={editProductPrice} onChange={(e) => setEditProductPrice(e.target.value)} required />
+                <input type="number" step="0.01" min="0.01" value={editProductPrice} onChange={(e) => setEditProductPrice(e.target.value)} required={editProduct?.status !== 'DRAFT'} />
               </label>
               <label>
                 {t('addProduct.stockQuantity')}

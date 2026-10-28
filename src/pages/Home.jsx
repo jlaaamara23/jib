@@ -47,7 +47,7 @@ export default function Home() {
             }))
           }),
         )
-        setProductFeed(productsByStore.flat())
+        setProductFeed(productsByStore.flat().filter((p) => p.status !== 'DRAFT'))
       } catch (e) {
         setError(e.message)
       } finally {
