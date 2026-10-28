@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { getStores, addProduct, uploadImage, createStore } from '../api/api'
+import { getStores, addProduct, uploadImage, createStore, importCloudinaryProducts } from '../api/api'
 import { useLanguage } from '../context/LanguageContext'
 import './AddProduct.css'
 import { STORE_CATEGORIES } from '../utils/categoryDisplay'
@@ -37,6 +37,11 @@ export default function AddProduct() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [importPrice, setImportPrice] = useState('50')
+  const [importStock, setImportStock] = useState('10')
+  const [importMax, setImportMax] = useState('2000')
+  const [importingCloudinary, setImportingCloudinary] = useState(false)
+  const [importResult, setImportResult] = useState('')
 
   useEffect(() => {
     getStores()
@@ -159,6 +164,47 @@ export default function AddProduct() {
     }
   }
 
+  const handleCloudinaryImport = async () => {
+    setError('')
+    setImportResult('')
+    setSuccess(false)
+    if (!selectedCategory) {
+      setError('Please select a category first (a store will be created if needed).')
+      return
+    }
+    const priceNum = Number(importPrice)
+    if (Number.isNaN(priceNum) || priceNum < 0.01) {
+      setError('Enter a valid default price for import (min 0.01).')
+      return
+    }
+    setImportingCloudinary(true)
+    try {
+      let sid = storeId ? Number(storeId) : null
+      if (!sid) {
+        const categoryLabel = t('category.' + selectedCategory) || selectedCategory
+        const newStore = await createStore(`${categoryLabel} Store ${Date.now()}`, selectedCategory)
+        sid = newStore?.id ? Number(newStore.id) : null
+        if (!sid) throw new Error('Failed to create store for this category.')
+        setStores((prev) => [...prev, newStore])
+        setStoreId(String(sid))
+      }
+      const result = await importCloudinaryProducts({
+        storeId: sid,
+        defaultPrice: priceNum,
+        defaultStock: Math.max(0, parseInt(importStock, 10) || 0),
+        folder: 'multi-stores',
+        maxImages: Math.max(1, parseInt(importMax, 10) || 2000),
+        namePrefix: t('category.' + selectedCategory) || selectedCategory,
+      })
+      setImportResult(result.message || `Imported ${result.imported} products.`)
+      setSuccess(true)
+    } catch (err) {
+      setError(err.message || 'Cloudinary import failed')
+    } finally {
+      setImportingCloudinary(false)
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
@@ -264,9 +310,55 @@ export default function AddProduct() {
   return (
     <div className="add-product">
       <h1>{t('addProduct.title')}</h1>
+
+      <section className="cloudinary-import-panel">
+        <h2>Fast import from Cloudinary</h2>
+        <p className="field-hint">
+          Creates one product for each image in Cloudinary folder <strong>multi-stores</strong>
+          (your old photos). Do not upload 1800 files here — use this button instead.
+        </p>
+        <label>
+          {t('createStore.category')}
+          <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+            <option value="">{t('addProduct.selectCategory')}</option>
+            {STORE_CATEGORIES.map((category) => (
+              <option key={category} value={category}>
+                {t('category.' + category) || category}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="cloudinary-import-row">
+          <label>
+            Default price (₪)
+            <input type="number" min="0.01" step="0.01" value={importPrice} onChange={(e) => setImportPrice(e.target.value)} />
+          </label>
+          <label>
+            Default stock
+            <input type="number" min="0" value={importStock} onChange={(e) => setImportStock(e.target.value)} />
+          </label>
+          <label>
+            Max images
+            <input type="number" min="1" max="5000" value={importMax} onChange={(e) => setImportMax(e.target.value)} />
+          </label>
+        </div>
+        <button
+          type="button"
+          className="btn btn-primary"
+          disabled={importingCloudinary}
+          onClick={handleCloudinaryImport}
+        >
+          {importingCloudinary ? 'Importing… please wait' : 'Import all photos from Cloudinary'}
+        </button>
+        {importResult && <div className="form-success">{importResult}</div>}
+      </section>
+
+      <hr className="form-divider" />
+      <h2 className="form-subtitle">Or add one product manually</h2>
+
       <form className="add-product-form" onSubmit={handleSubmit}>
         {error && <div className="form-error">{error}</div>}
-        {success && <div className="form-success">{t('addProduct.success')}</div>}
+        {success && !importResult && <div className="form-success">{t('addProduct.success')}</div>}
         <label>
           {t('createStore.category')}
           <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} required>

@@ -247,6 +247,24 @@ export async function addProduct(data) {
   return normalizeProductAssets(body);
 }
 
+/** Admin: create one product per image in a Cloudinary folder (default multi-stores). */
+export async function importCloudinaryProducts(data) {
+  const res = await fetchWithTimeout(`${API_BASE}/admin/import-cloudinary`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify(data),
+  }, 300000);
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      clearAuthToken();
+      throw new Error(body.error || 'Session expired or forbidden. Please log in again.');
+    }
+    throw new Error(body.error || 'Cloudinary import failed');
+  }
+  return body;
+}
+
 export async function updateProduct(id, data) {
   const res = await fetch(`${API_BASE}/products/${id}`, {
     method: 'PUT',
