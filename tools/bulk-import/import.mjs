@@ -27,6 +27,8 @@ const HELP = `Options:
   --create-stores         create a store for a category that has none yet
   --state <file>          progress file (default: ./jibi-import-state.<host>.json)
   --allow-remote=<host>   required to target anything other than localhost
+  --require-cloudinary    stop if an uploaded image is not stored on Cloudinary
+                          (always on for non-local targets)
   --include <statuses>    comma-separated kit statuses to import
                           (default: "Waiting: price,Waiting: Shoes category,Waiting: Luggage category")`;
 
@@ -34,6 +36,7 @@ const CATEGORY_STORE_NAMES = {
   CLOTHING: 'Clothing', SHOES: 'Shoes', LUGGAGE: 'Luggage & Travel',
 };
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+const CLOUDINARY_PREFIX = 'https://res.cloudinary.com/';
 const IMAGE_EXT = /\.(jpe?g|png|gif|webp)$/i;
 
 function parseArgs(argv) {
@@ -159,6 +162,7 @@ async function main() {
   const limit = args.limit ? Number(args.limit) : Infinity;
   const dry = !!args['dry-run'];
   const stateFile = path.resolve(args.state || `jibi-import-state.${host}.json`);
+  const requireCloudinary = !isLocal || !!args['require-cloudinary'];
 
   const all = JSON.parse(fs.readFileSync(args.kit, 'utf8'));
   const state = loadState(stateFile);
@@ -167,7 +171,7 @@ async function main() {
   const todo = selected.filter((p) => !state.products[p.id]);
   const already = selected.length - todo.length;
 
-  log(`Target:        ${apiUrl.origin}${isLocal ? ' (local)' : ' (REMOTE)'}`);
+  log(`Target:        ${apiUrl.origin}${isLocal ? ' (local)' : ' (REMOTE)'}${requireCloudinary ? ', images must go to Cloudinary' : ''}`);
   log(`Kit products:  ${all.length}  | selected: ${selected.length}  | excluded by status: ${skippedStatus}`);
   log(`Already done:  ${already} (from ${path.basename(stateFile)})  | to import now: ${Math.min(todo.length, limit)}`);
 
@@ -205,7 +209,14 @@ async function main() {
   for (const [i, p] of batch.entries()) {
     try {
       for (const img of p.images) {
-        if (!state.images[img]) { state.images[img] = await api.upload(img); saveState(stateFile, state); }
+        if (!state.images[img]) {
+          const url = await api.upload(img);
+          if (requireCloudinary && !url.startsWith(CLOUDINARY_PREFIX)) {
+            const err = new Error(`image was not stored on Cloudinary (got ${url.slice(0, 60)}). Stopping: check the backend's CLOUDINARY_* settings.`);
+            err.fatal = true; throw err;
+          }
+          state.images[img] = url; saveState(stateFile, state);
+        }
       }
       const created = await api.call('POST', '/products', buildPayload(p, storeFor[p.category], (f) => state.images[f]));
       if (created.status !== 'DRAFT') throw new Error(`server returned status ${created.status}, expected DRAFT`);
@@ -216,6 +227,7 @@ async function main() {
     } catch (e) {
       failed.push({ id: p.id, error: e.message });
       log(`  [${i + 1}/${batch.length}] ${p.id} FAILED: ${e.message}`);
+      if (e.fatal) break;
       if (e.status === 401 || e.status === 403) { log('Authentication problem: stopping.'); break; }
     }
   }
