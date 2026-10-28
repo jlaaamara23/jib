@@ -2,29 +2,13 @@ import { useState, useEffect, useRef } from 'react'
 import { getStores, addProduct, uploadImage, createStore } from '../api/api'
 import { useLanguage } from '../context/LanguageContext'
 import './AddProduct.css'
-
-const STORE_CATEGORIES = [
-  'KITCHEN',
-  'SPICES',
-  'GROCERY',
-  'CLOTHING',
-  'WOMEN_UNDERWEAR',
-  'KIDS_UNDERWEAR',
-  'CHILD_GAME',
-  'ELECTRONICS',
-  'BEAUTY',
-  'HOME_DECOR',
-  'SPORTS',
-  'PETS',
-  'HEALTH',
-  'TOOLS',
-  'OFFICE',
-]
+import { STORE_CATEGORIES } from '../utils/categoryDisplay'
 
 const SIZE_OPTIONS_BY_CATEGORY = {
   SPICES: ['250G', '500G', '1KG', '2KG', '5KG'],
   GROCERY: ['250G', '500G', '1KG', '2KG', '5KG'],
   KIDS_UNDERWEAR: ['2', '4', '6', '8', '10', '12', '14'],
+  SHOES: ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46'],
 }
 
 const DEFAULT_SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'XXL']

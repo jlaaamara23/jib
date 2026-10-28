@@ -2,24 +2,7 @@ import { useState, useRef } from 'react'
 import { createStore, uploadImage } from '../api/api'
 import { useLanguage } from '../context/LanguageContext'
 import './AddProduct.css'
-
-const STORE_CATEGORIES = [
-  'KITCHEN',
-  'SPICES',
-  'GROCERY',
-  'CLOTHING',
-  'WOMEN_UNDERWEAR',
-  'KIDS_UNDERWEAR',
-  'CHILD_GAME',
-  'ELECTRONICS',
-  'BEAUTY',
-  'HOME_DECOR',
-  'SPORTS',
-  'PETS',
-  'HEALTH',
-  'TOOLS',
-  'OFFICE',
-]
+import { STORE_CATEGORIES } from '../utils/categoryDisplay'
 
 export default function CreateStore() {
   const { t } = useLanguage()

@@ -1,3 +1,24 @@
+/** All store categories, in display order. Must match the backend StoreCategory enum. */
+export const STORE_CATEGORIES = [
+  'KITCHEN',
+  'SPICES',
+  'GROCERY',
+  'CLOTHING',
+  'SHOES',
+  'WOMEN_UNDERWEAR',
+  'KIDS_UNDERWEAR',
+  'CHILD_GAME',
+  'ELECTRONICS',
+  'BEAUTY',
+  'HOME_DECOR',
+  'LUGGAGE',
+  'SPORTS',
+  'PETS',
+  'HEALTH',
+  'TOOLS',
+  'OFFICE',
+]
+
 export const CATEGORY_EMOJI = {
   ALL: '🏠',
   KITCHEN: '🍳',
@@ -15,6 +36,8 @@ export const CATEGORY_EMOJI = {
   HEALTH: '💊',
   TOOLS: '🔧',
   OFFICE: '📎',
+  SHOES: '👞',
+  LUGGAGE: '🧳',
 }
 
 export const FEATURED_CATEGORIES = [
