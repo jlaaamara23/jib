@@ -54,6 +54,8 @@ export const translations = {
       HEALTH: 'Health',
       TOOLS: 'Tools',
       OFFICE: 'Office',
+      SHOES: 'Shoes',
+      LUGGAGE: 'Luggage & Travel',
     },
     storePage: {
       allStores: 'All stores',
@@ -252,6 +254,8 @@ export const translations = {
       HEALTH: 'בריאות',
       TOOLS: 'כלי עבודה',
       OFFICE: 'משרד',
+      SHOES: 'נעליים',
+      LUGGAGE: 'מזוודות ונסיעות',
     },
     storePage: {
       allStores: 'כל החנויות',
@@ -450,6 +454,8 @@ export const translations = {
       HEALTH: 'صحة',
       TOOLS: 'أدوات',
       OFFICE: 'مكتب',
+      SHOES: 'أحذية',
+      LUGGAGE: 'حقائب سفر',
     },
     storePage: {
       allStores: 'كل المتاجر',
