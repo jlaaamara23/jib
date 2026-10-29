@@ -120,14 +120,15 @@ export async function getStoreById(id) {
 export async function getProducts(storeId, categoryId = null) {
   let url = `${API_BASE}/stores/${storeId}/products`;
   if (categoryId) url += `?categoryId=${categoryId}`;
-  const res = await fetch(url, { headers: headers(false) });
+  // Send the login token when present so admins also receive their draft products.
+  const res = await fetch(url, { headers: headers() });
   if (!res.ok) throw new Error('Failed to load products');
   const data = await res.json();
   return Array.isArray(data) ? data.map(normalizeProductAssets) : [];
 }
 
 export async function getProductById(id) {
-  const res = await fetch(`${API_BASE}/products/${encodeURIComponent(id)}`, { headers: headers(false) });
+  const res = await fetch(`${API_BASE}/products/${encodeURIComponent(id)}`, { headers: headers() });
   if (!res.ok) throw new Error('Product not found');
   const data = await res.json();
   return normalizeProductAssets(data);
@@ -281,6 +282,32 @@ export async function updateProduct(id, data) {
   }
   const body = await res.json();
   return normalizeProductAssets(body);
+}
+
+async function postProductAction(path, body) {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: 'POST',
+    headers: headers(),
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+/** Publish one product (requires a price). */
+export async function publishProduct(id) {
+  return normalizeProductAssets(await postProductAction(`/products/${id}/publish`));
+}
+
+/** Move a product back to drafts (hidden from customers). */
+export async function unpublishProduct(id) {
+  return normalizeProductAssets(await postProductAction(`/products/${id}/unpublish`));
+}
+
+/** Publish many products. Returns { published: [ids], failed: [{ id, error }] }. */
+export async function publishProducts(ids) {
+  return postProductAction('/products/publish', { ids });
 }
 
 export async function deleteProduct(id) {

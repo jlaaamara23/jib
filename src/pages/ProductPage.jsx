@@ -4,7 +4,7 @@ import { getProductById, getStoreById, getStoreBySlug, getProducts, getStores } 
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
-import { lineUnitPrice, usesWeightPricing } from '../utils/weightPrice'
+import { hasPrice, isSellable, lineUnitPrice, usesWeightPricing } from '../utils/weightPrice'
 import { canGoBackInApp } from '../utils/scrollRestoration'
 import './ProductPage.css'
 
@@ -183,8 +183,9 @@ export default function ProductPage() {
         )}
         <h1 className="product-page-title">{product.name}</h1>
         {product.description && <p className="product-page-desc">{product.description}</p>}
+        {product.status === 'DRAFT' && <p className="draft-badge">{t('storePage.draft')}</p>}
         <p className="product-page-price">
-          ₪{Number(product.price).toFixed(2)}
+          {hasPrice(product) ? `₪${Number(product.price).toFixed(2)}` : <span className="product-no-price">{t('storePage.noPrice')}</span>}
           {weightStore && product.sizeStock?.length ? <span className="product-price-per-kg">{t('storePage.perKg')}</span> : null}
         </p>
         {weightStore && product.sizeStock?.length && selectedSize ? (
@@ -229,7 +230,7 @@ export default function ProductPage() {
               <button
                 type="button"
                 className="btn btn-primary"
-                disabled={!selectedSize}
+                disabled={!selectedSize || !isSellable(product)}
                 onClick={handleAddToCart}
               >
                 {t('storePage.addToCart')}
@@ -239,7 +240,7 @@ export default function ProductPage() {
             <button
               type="button"
               className="btn btn-primary"
-              disabled={hasColorVariants ? ((activeVariant?.quantity ?? 0) <= 0) : (product.stockQuantity <= 0)}
+              disabled={!isSellable(product) || (hasColorVariants ? ((activeVariant?.quantity ?? 0) <= 0) : (product.stockQuantity <= 0))}
               onClick={handleAddToCart}
             >
               {t('storePage.addToCart')}
