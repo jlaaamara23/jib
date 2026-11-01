@@ -80,7 +80,9 @@ export default function Layout() {
                 <>
                   <Link to="/create-store" className="nav-link nav-owner" onClick={closeMenu}>{t('nav.createStore')}</Link>
                   <Link to="/add-product" className="nav-link nav-owner" onClick={closeMenu}>{t('nav.addProduct')}</Link>
-                  <Link to="/manage" className="nav-link nav-owner" onClick={closeMenu}>{t('nav.manageProducts')}</Link>
+                  {user?.role === 'ADMIN' && (
+                    <Link to="/manage" className="nav-link nav-owner" onClick={closeMenu}>{t('nav.manageProducts')}</Link>
+                  )}
                 </>
               )}
               <span className="user-email" title={user?.email}>{user?.email}</span>

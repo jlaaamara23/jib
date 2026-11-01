@@ -13,7 +13,7 @@ import AddProduct from './pages/AddProduct'
 import ManageProducts from './pages/ManageProducts'
 import CreateStore from './pages/CreateStore'
 
-function Protected({ children, requireAuth = true, requireManager = false }) {
+function Protected({ children, requireAuth = true, requireManager = false, requireAdmin = false }) {
   const { isAuthenticated, user, loading } = useAuth()
 
   if (loading) {
@@ -22,6 +22,10 @@ function Protected({ children, requireAuth = true, requireManager = false }) {
 
   if (requireAuth && !isAuthenticated) {
     return <Navigate to="/login" replace />
+  }
+
+  if (requireAdmin && (user?.role ?? '') !== 'ADMIN') {
+    return <Navigate to="/" replace />
   }
 
   if (requireManager) {
@@ -47,7 +51,7 @@ export default function App() {
         <Route path="cart" element={<Protected><Cart /></Protected>} />
         <Route path="orders" element={<Protected><MyOrders /></Protected>} />
         <Route path="add-product" element={<Protected requireManager><AddProduct /></Protected>} />
-        <Route path="manage" element={<Protected requireManager><ManageProducts /></Protected>} />
+        <Route path="manage" element={<Protected requireAdmin><ManageProducts /></Protected>} />
         <Route path="create-store" element={<Protected requireManager><CreateStore /></Protected>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
