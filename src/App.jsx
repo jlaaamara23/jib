@@ -10,6 +10,7 @@ import VerifyEmail from './pages/VerifyEmail'
 import Cart from './pages/Cart'
 import MyOrders from './pages/MyOrders'
 import AddProduct from './pages/AddProduct'
+import ManageProducts from './pages/ManageProducts'
 import CreateStore from './pages/CreateStore'
 
 function Protected({ children, requireAuth = true, requireManager = false }) {
@@ -46,6 +47,7 @@ export default function App() {
         <Route path="cart" element={<Protected><Cart /></Protected>} />
         <Route path="orders" element={<Protected><MyOrders /></Protected>} />
         <Route path="add-product" element={<Protected requireManager><AddProduct /></Protected>} />
+        <Route path="manage" element={<Protected requireManager><ManageProducts /></Protected>} />
         <Route path="create-store" element={<Protected requireManager><CreateStore /></Protected>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

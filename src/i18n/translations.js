@@ -1,7 +1,15 @@
 export const translations = {
   en: {
+    manage: {
+      title: 'Manage products',
+      drafts: 'Drafts',
+      published: 'Published',
+      open: 'Open',
+      hint: 'Open a category to see its products. There you can edit price, sizes, colours and stock (saving keeps a product as a draft), and select drafts to publish them.',
+    },
     nav: {
       appName: 'JIBI',
+      manageProducts: 'Manage products',
       stores: 'Stores',
       cart: 'Cart',
       myOrders: 'My Orders',
@@ -214,8 +222,16 @@ export const translations = {
     },
   },
   he: {
+    manage: {
+      title: 'ניהול מוצרים',
+      drafts: 'טיוטות',
+      published: 'פורסמו',
+      open: 'פתח',
+      hint: 'פתח קטגוריה כדי לראות את המוצרים שלה. שם ניתן לערוך מחיר, מידות, צבעים ומלאי (השמירה משאירה את המוצר כטיוטה), ולבחור טיוטות כדי לפרסם אותן.',
+    },
     nav: {
       appName: 'JIBI',
+      manageProducts: 'ניהול מוצרים',
       stores: 'חנויות',
       cart: 'עגלה',
       myOrders: 'ההזמנות שלי',
@@ -428,8 +444,16 @@ export const translations = {
     },
   },
   ar: {
+    manage: {
+      title: 'إدارة المنتجات',
+      drafts: 'المسودات',
+      published: 'منشورة',
+      open: 'فتح',
+      hint: 'افتح فئة لرؤية منتجاتها. هناك يمكنك تعديل السعر والمقاسات والألوان والمخزون (الحفظ يُبقي المنتج كمسودة)، وتحديد المسودات لنشرها.',
+    },
     nav: {
       appName: 'JIBI',
+      manageProducts: 'إدارة المنتجات',
       stores: 'المتاجر',
       cart: 'السلة',
       myOrders: 'طلباتي',
