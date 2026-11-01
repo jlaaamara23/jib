@@ -23,6 +23,7 @@ export default function AddProduct() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [price, setPrice] = useState('')
+  const [savedAsDraft, setSavedAsDraft] = useState(false)
   const [stockQuantity, setStockQuantity] = useState('0')
   const [sizeStocks, setSizeStocks] = useState([])
   const [imageUrls, setImageUrls] = useState([''])
@@ -207,8 +208,10 @@ export default function AddProduct() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    const asDraft = e.nativeEvent?.submitter?.value === 'draft'
     setError('')
     setSuccess(false)
+    setSavedAsDraft(false)
     let sid = storeId ? Number(storeId) : null
     const hasValidSinglePrice = price !== '' && Number(price) >= 0
     if (!selectedCategory) {
@@ -219,7 +222,7 @@ export default function AddProduct() {
       setError('Please enter product name.')
       return
     }
-    if (!bulkPerImagePricing && !hasValidSinglePrice) {
+    if (!asDraft && !bulkPerImagePricing && !hasValidSinglePrice) {
       setError('Please enter a valid price.')
       return
     }
@@ -260,10 +263,15 @@ export default function AddProduct() {
           let productPrice = Number(price)
           if (bulkPerImagePricing) {
             const customPrice = Number(imagePrices[entry.index])
-            if (Number.isNaN(customPrice) || customPrice < 0) {
+            if (asDraft && (imagePrices[entry.index] ?? '') === '') {
+              productPrice = null
+            } else if (Number.isNaN(customPrice) || customPrice < 0) {
               throw new Error(`Please enter a valid price for image ${i + 1}.`)
+            } else {
+              productPrice = customPrice
             }
-            productPrice = customPrice
+          } else if (asDraft && price === '') {
+            productPrice = null
           } else if (Number.isNaN(productPrice) || productPrice < 0) {
             throw new Error('Please enter a valid price.')
           }
@@ -272,6 +280,7 @@ export default function AddProduct() {
             name: `${name.trim()} ${i + 1}`,
             description: description.trim() || null,
             price: productPrice,
+            status: asDraft ? 'DRAFT' : 'PUBLISHED',
             stockQuantity: totalFromSizes > 0 ? totalFromSizes : Math.max(0, parseInt(stockQuantity, 10) || 0),
             imageUrls: [entry.url],
             sizeStocks: sizeStocksPayload.length > 0 ? sizeStocksPayload : null,
@@ -283,7 +292,8 @@ export default function AddProduct() {
           storeId: sid,
           name: name.trim(),
           description: description.trim() || null,
-          price: Number(price),
+          price: price === '' ? null : Number(price),
+          status: asDraft ? 'DRAFT' : 'PUBLISHED',
           stockQuantity: totalFromSizes > 0 ? totalFromSizes : Math.max(0, parseInt(stockQuantity, 10) || 0),
           imageUrls: urls.length ? urls : null,
           sizeStocks: sizeStocksPayload.length > 0 ? sizeStocksPayload : null,
@@ -291,6 +301,7 @@ export default function AddProduct() {
         })
       }
       setSuccess(true)
+      setSavedAsDraft(asDraft)
       setName('')
       setDescription('')
       setPrice('')
@@ -358,7 +369,7 @@ export default function AddProduct() {
 
       <form className="add-product-form" onSubmit={handleSubmit}>
         {error && <div className="form-error">{error}</div>}
-        {success && !importResult && <div className="form-success">{t('addProduct.success')}</div>}
+        {success && !importResult && <div className="form-success">{savedAsDraft ? t('addProduct.draftSaved') : t('addProduct.success')}</div>}
         <label>
           {t('createStore.category')}
           <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} required>
@@ -567,9 +578,15 @@ export default function AddProduct() {
           {t('addProduct.stockQuantity')}
           <input type="number" min="0" value={stockQuantity} onChange={(e) => setStockQuantity(e.target.value)} title={t('addProduct.sizesHint')} />
         </label>
-        <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? t('addProduct.adding') : t('addProduct.addProduct')}
-        </button>
+        <p className="field-hint">{t('addProduct.priceOptionalForDraft')}</p>
+        <div className="add-product-submit-row">
+          <button type="submit" className="btn btn-primary" value="publish" disabled={loading}>
+            {loading ? t('addProduct.adding') : t('addProduct.addProduct')}
+          </button>
+          <button type="submit" className="btn btn-secondary" value="draft" formNoValidate disabled={loading}>
+            {t('addProduct.saveDraft')}
+          </button>
+        </div>
       </form>
     </div>
   )

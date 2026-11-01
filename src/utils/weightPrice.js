@@ -13,6 +13,16 @@ export function usesWeightPricing(storeCategory) {
   return storeCategory === 'SPICES' || storeCategory === 'GROCERY'
 }
 
+/** Drafts may have no price yet. */
+export function hasPrice(product) {
+  return product?.price !== null && product?.price !== undefined && product?.price !== ''
+}
+
+/** True when customers may buy the product (published and priced). */
+export function isSellable(product) {
+  return (product?.status || 'PUBLISHED') !== 'DRAFT' && hasPrice(product)
+}
+
 /** For weight stores, `product.price` is per 1 kg; returns price for one pack at `size`. */
 export function lineUnitPrice(product, size) {
   const base = Number(product?.price)
