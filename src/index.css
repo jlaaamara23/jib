@@ -151,28 +151,8 @@ html[dir="rtl"][lang="ar"] {
   font-family: 'Noto Sans Arabic', var(--font-sans);
 }
 
-html[dir="rtl"][lang="he"] {
-  font-family: 'Noto Sans Hebrew', var(--font-sans);
-}
-
-[dir="rtl"] .header {
-  flex-direction: row-reverse;
-}
-
-@media (min-width: 768px) {
-  [dir="rtl"] .nav {
-    flex-direction: row-reverse;
-  }
-}
-
-[dir="rtl"] .cart-badge {
-  margin-right: 0.35rem;
-  margin-left: 0;
-}
-
 [dir="rtl"] .store-card-icon-wrap,
-[dir="rtl"] .store-header-icon-wrap,
-[dir="rtl"] .product-card-images {
+[dir="rtl"] .store-header-icon-wrap {
   margin-right: 0;
   margin-left: auto;
 }
