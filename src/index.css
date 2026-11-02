@@ -1,29 +1,36 @@
 :root {
-  --bg: #faf7f2;
-  --bg-subtle: #f3efe8;
+  /* JIBI navy & gold */
+  --navy: #14213d;
+  --navy-deep: #0d1730;
+  --navy-light: #1d2d50;
+  --gold: #e9c46a;
+  --gold-light: #f2d78f;
+  --sale: #d62828;
+  --bg: #f6f4ef;
+  --bg-subtle: #efebe2;
   --surface: #ffffff;
-  --surface-hover: #f8f4ee;
-  --border: #e8dfd4;
-  --border-light: #d9cfc2;
-  --text: #2c2419;
-  --text-muted: #6b5e52;
-  --text-dim: #8a7b6c;
-  --accent: #c45c26;
-  --accent-hover: #a84a1c;
-  --accent-soft: rgba(196, 92, 38, 0.12);
-  --accent-secondary: #2d6a4f;
-  --accent-secondary-hover: #245a42;
-  --accent-secondary-soft: rgba(45, 106, 79, 0.12);
+  --surface-hover: #f5f2ea;
+  --border: #e4ddcf;
+  --border-light: #d6cdbb;
+  --text: #14213d;
+  --text-muted: #4f5b73;
+  --text-dim: #7a8397;
+  --accent: #14213d;
+  --accent-hover: #1d2d50;
+  --accent-soft: rgba(20, 33, 61, 0.08);
+  --accent-secondary: #b8902f;
+  --accent-secondary-hover: #9c7a26;
+  --accent-secondary-soft: rgba(233, 196, 106, 0.18);
   --success: #2d6a4f;
   --success-soft: rgba(45, 106, 79, 0.12);
   --danger: #c0392b;
   --danger-soft: rgba(192, 57, 43, 0.1);
-  --radius: 12px;
-  --radius-lg: 16px;
-  --shadow: 0 4px 24px rgba(44, 36, 25, 0.08);
-  --shadow-lg: 0 12px 40px rgba(44, 36, 25, 0.12);
-  --font-sans: 'DM Sans', system-ui, sans-serif;
-  --font-head: 'Outfit', system-ui, sans-serif;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --shadow: 0 4px 20px rgba(20, 33, 61, 0.08);
+  --shadow-lg: 0 12px 36px rgba(20, 33, 61, 0.14);
+  --font-sans: 'Heebo', 'Noto Sans Arabic', system-ui, sans-serif;
+  --font-head: 'Rubik', 'Heebo', 'Noto Sans Arabic', system-ui, sans-serif;
 }
 
 * {

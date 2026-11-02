@@ -1,29 +1,32 @@
-import { useState, useEffect, useRef } from 'react'
-import { Link, useNavigationType } from 'react-router-dom'
-import { getStores, getProducts } from '../api/api'
+import { useState, useEffect } from 'react'
+import { Link, useNavigationType, useSearchParams } from 'react-router-dom'
+import { getStores, getProducts, getStoreCategories } from '../api/api'
 import { useLanguage } from '../context/LanguageContext'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { restoreScrollPosition, saveScrollPosition } from '../utils/scrollRestoration'
-import { CATEGORY_EMOJI, FEATURED_CATEGORIES, categoryEmoji, storeDisplayName } from '../utils/categoryDisplay'
+import { DEPARTMENTS, storeDisplayName } from '../utils/categoryDisplay'
+import { hasPrice } from '../utils/weightPrice'
 import './Home.css'
+
+const productImage = (p) =>
+  p.colorVariants?.find((v) => v.imageUrls?.length > 0)?.imageUrls?.[0] || p.imageUrls?.[0] || ''
 
 export default function Home() {
   const navigationType = useNavigationType()
+  const [searchParams] = useSearchParams()
+  const query = (searchParams.get('q') || '').trim().toLowerCase()
   const { t } = useLanguage()
   const { addToCart } = useCart()
   const { isAdmin, user } = useAuth()
   const canManage = isAdmin || user?.role === 'OWNER'
   const [stores, setStores] = useState([])
-  const [productFeed, setProductFeed] = useState([])
-  const [selectedCategory, setSelectedCategory] = useState('ALL')
+  const [products, setProducts] = useState([])
+  const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [addedProductId, setAddedProductId] = useState(null)
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
-  const [isGridAnimating, setIsGridAnimating] = useState(false)
   const [brokenImageByProduct, setBrokenImageByProduct] = useState({})
-  const catalogRef = useRef(null)
 
   useEffect(() => {
     if (!loading && navigationType === 'POP') {
@@ -36,18 +39,21 @@ export default function Home() {
       try {
         const loadedStores = await getStores()
         setStores(loadedStores)
-        const productsByStore = await Promise.all(
+        const perStore = await Promise.all(
           loadedStores.map(async (store) => {
-            const products = await getProducts(store.id)
-            return products.map((product) => ({
-              ...product,
-              storeSlug: store.slug,
-              storeName: storeDisplayName(store, t),
-              storeCategory: store.category,
-            }))
+            const [storeProducts, storeCategories] = await Promise.all([
+              getProducts(store.id),
+              getStoreCategories(store.id).catch(() => []),
+            ])
+            return {
+              products: storeProducts.map((product) => ({ ...product, store })),
+              categories: storeCategories.map((c) => ({ ...c, store })),
+            }
           }),
         )
-        setProductFeed(productsByStore.flat().filter((p) => p.status !== 'DRAFT'))
+        // Admins also receive drafts, so they can preview the shop before publishing.
+        setProducts(perStore.flatMap((s) => s.products))
+        setCategories(perStore.flatMap((s) => s.categories))
       } catch (e) {
         setError(e.message)
       } finally {
@@ -57,206 +63,155 @@ export default function Home() {
     loadHomeData()
   }, [])
 
-  const categories = [...new Set(stores.map((store) => store.category).filter(Boolean))]
-  const visibleProducts = selectedCategory === 'ALL'
-    ? productFeed
-    : productFeed.filter((product) => product.storeCategory === selectedCategory)
-
-  useEffect(() => {
-    setIsGridAnimating(true)
-    const timer = window.setTimeout(() => setIsGridAnimating(false), 260)
-    return () => window.clearTimeout(timer)
-  }, [selectedCategory])
-
   if (loading) return <div className="page-loading">{t('home.loadingStores')}</div>
   if (error) return <div className="page-error">{t('common.error')}: {error}</div>
 
+  const label = (c) => {
+    const key = `subcategories.${c.name}`
+    const v = t(key)
+    return typeof v === 'string' && v !== key ? v : c.name
+  }
+  const productsIn = (c) => products.filter((p) => p.categoryId === c.id || categories.find((x) => x.id === p.categoryId)?.parentId === c.id)
+  const leafCircles = categories
+    .filter((c) => c.parentId != null)
+    .map((c) => ({ c, items: productsIn(c) }))
+    .filter((x) => x.items.length > 0)
+    .sort((a, b) => b.items.length - a.items.length)
+    .slice(0, 10)
+  const groupTiles = categories
+    .filter((c) => c.parentId == null)
+    .map((c) => ({ c, items: productsIn(c) }))
+    .filter((x) => x.items.length > 0)
+    .sort((a, b) => b.items.length - a.items.length)
+    .slice(0, 3)
+  const heroImages = groupTiles.map((x) => productImage(x.items[0])).filter(Boolean).slice(0, 2)
+  const departments = stores.filter((s) => DEPARTMENTS.includes(s.category))
+  const firstDept = departments[0]
+
+  const matches = (p) => !query || `${p.name} ${p.description || ''}`.toLowerCase().includes(query)
+  const feed = products.filter(matches).slice().sort((a, b) => b.id - a.id).slice(0, query ? 120 : 20)
+
   const handleQuickAdd = (product) => {
-    addToCart(product, 1)
+    addToCart({ ...product, storeId: product.store.id, storeName: storeDisplayName(product.store, t), storeCategory: product.store.category }, 1)
     setAddedProductId(product.id)
     window.setTimeout(() => setAddedProductId(null), 700)
   }
 
-  const handleProductNavigate = () => {
-    saveScrollPosition('/', '')
-  }
+  const handleProductNavigate = () => saveScrollPosition('/', '')
 
-  const scrollToCatalog = () => {
-    catalogRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
-  const selectCategory = (category) => {
-    setSelectedCategory(category)
-    setMobileFiltersOpen(false)
-    scrollToCatalog()
-  }
-
-  const featuredToShow = FEATURED_CATEGORIES.filter(
-    (cat) => categories.includes(cat) || categories.length === 0,
+  const productGrid = (
+    <div className="shop-grid">
+      {feed.map((p) => {
+        const imageUrl = productImage(p)
+        const link = `/product/${p.id}?store=${encodeURIComponent(p.store.slug)}`
+        const isDraft = p.status === 'DRAFT'
+        return (
+          <article key={p.id} className="shop-card">
+            <Link to={link} className="shop-card-media" onClick={handleProductNavigate}>
+              {imageUrl && !brokenImageByProduct[p.id] ? (
+                <img
+                  src={imageUrl}
+                  alt={p.name}
+                  loading="lazy"
+                  onError={() => setBrokenImageByProduct((prev) => ({ ...prev, [p.id]: true }))}
+                />
+              ) : (
+                <div className="shop-card-placeholder">{t('storePage.noImage')}</div>
+              )}
+              {isDraft ? <span className="shop-tag draft">{t('shop.draft')}</span> : <span className="shop-tag">{t('shop.new')}</span>}
+            </Link>
+            <div className="shop-card-body">
+              <Link to={link} className="shop-card-name" onClick={handleProductNavigate}>{p.name}</Link>
+              <span className="shop-card-dept">{storeDisplayName(p.store, t)}</span>
+              <div className="shop-card-bottom">
+                <span className="shop-card-price">{hasPrice(p) ? `₪${Number(p.price).toFixed(2)}` : t('shop.noPrice')}</span>
+                {!isDraft && hasPrice(p) && (
+                  <button
+                    type="button"
+                    className={`shop-card-add ${addedProductId === p.id ? 'is-added' : ''}`}
+                    onClick={() => handleQuickAdd(p)}
+                    aria-label={t('home.addToCart')}
+                  >
+                    {addedProductId === p.id ? '✓' : '+'}
+                  </button>
+                )}
+              </div>
+            </div>
+          </article>
+        )
+      })}
+    </div>
   )
+
+  if (query) {
+    return (
+      <div className="home">
+        <div className="shop-section-head">
+          <h2>{t('shop.resultsFor')} “{searchParams.get('q')}”</h2>
+          <span className="shop-section-count">{t('storePage.productCount').replace('{n}', feed.length)}</span>
+        </div>
+        {feed.length > 0 ? productGrid : <p className="empty">{t('shop.noResults')}</p>}
+      </div>
+    )
+  }
 
   return (
     <div className="home">
-      <section className="home-hero">
-        <div className="home-hero-copy">
-          <p className="eyebrow">{t('home.heroEyebrow')}</p>
-          <h1 className="home-title">{t('home.heroTitle')}</h1>
-          <p className="home-subtitle">{t('home.heroSubtitle')}</p>
-          <ul className="hero-trust-list">
-            <li><span aria-hidden="true">🍳</span> {t('home.trustKitchen')}</li>
-            <li><span aria-hidden="true">👕</span> {t('home.trustClothing')}</li>
-            <li><span aria-hidden="true">🧸</span> {t('home.trustKids')}</li>
-          </ul>
-          <div className="hero-ctas">
-            <button type="button" className="btn btn-primary" onClick={scrollToCatalog}>
-              {t('home.shopNow')}
-            </button>
-            <Link to="/cart" className="btn btn-secondary">
-              {t('home.viewCart')}
+      <section className="shop-hero">
+        <div className="shop-hero-copy">
+          <small>{t('shop.heroEyebrow')}</small>
+          <h1>{t('shop.heroTitle')}</h1>
+          <p>{t('shop.heroSubtitle')}</p>
+          {firstDept && <Link to={`/store/${firstDept.slug}`} className="shop-hero-btn">{t('home.shopNow')}</Link>}
+        </div>
+        {heroImages.map((src) => <img key={src} src={src} alt="" className="shop-hero-img" />)}
+      </section>
+
+      {leafCircles.length > 0 && (
+        <section className="shop-circles" aria-label={t('home.shopByCategory')}>
+          {leafCircles.map(({ c, items }) => (
+            <Link key={c.id} to={`/store/${c.store.slug}?cat=${c.id}`} className="shop-circle">
+              <img src={productImage(items[0])} alt="" loading="lazy" />
+              <span>{label(c)}</span>
             </Link>
-          </div>
-          <p className="hero-delivery-note">🚚 {t('home.homeDelivery')}</p>
-        </div>
+          ))}
+        </section>
+      )}
 
-        <div className="hero-category-panel">
-          <h2 className="hero-category-title">{t('home.shopByCategory')}</h2>
-          <div className="hero-category-grid">
-            {featuredToShow.map((category) => (
-              <button
-                key={category}
-                type="button"
-                className={`hero-category-card ${selectedCategory === category ? 'active' : ''}`}
-                onClick={() => selectCategory(category)}
-              >
-                <span className="hero-category-emoji" aria-hidden="true">{categoryEmoji(category)}</span>
-                <span className="hero-category-name">{t('category.' + category) || category}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+      <section className="shop-perks">
+        <div><span aria-hidden="true">🚚</span><p><b>{t('shop.perkDelivery')}</b>{t('shop.perkDeliveryText')}</p></div>
+        <div><span aria-hidden="true">↩️</span><p><b>{t('shop.perkReturns')}</b>{t('shop.perkReturnsText')}</p></div>
+        <div><span aria-hidden="true">🔒</span><p><b>{t('shop.perkSecure')}</b>{t('shop.perkSecureText')}</p></div>
+        <div><span aria-hidden="true">💬</span><p><b>{t('shop.perkSupport')}</b>{t('shop.perkSupportText')}</p></div>
       </section>
 
-      <section className="home-stores" ref={catalogRef}>
-        <div className="home-catalog-layout">
-          <button
-            type="button"
-            className="mobile-filter-btn"
-            onClick={() => setMobileFiltersOpen(true)}
-          >
-            {t('home.filterBtn')}
-          </button>
+      {groupTiles.length > 0 && (
+        <section className="shop-tiles">
+          {groupTiles.map(({ c, items }) => (
+            <Link key={c.id} to={`/store/${c.store.slug}?cat=${c.id}`} className="shop-tile">
+              <img src={productImage(items[0])} alt="" loading="lazy" />
+              <span>{label(c)}<small>{t('shop.models').replace('{n}', items.length)}</small></span>
+            </Link>
+          ))}
+        </section>
+      )}
 
-          <div
-            className={`sidebar-backdrop ${mobileFiltersOpen ? 'is-open' : ''}`}
-            onClick={() => setMobileFiltersOpen(false)}
-            aria-hidden="true"
-          />
-
-          <aside className={`category-sidebar ${mobileFiltersOpen ? 'is-open' : ''}`}>
-            <div className="sidebar-header">
-              <h3 className="sidebar-title">{t('home.sidebarTitle')}</h3>
-              <button
-                type="button"
-                className="sidebar-close"
-                onClick={() => setMobileFiltersOpen(false)}
-                aria-label="Close filters"
-              >
-                ×
-              </button>
-            </div>
-            <button
-              type="button"
-              className={`sidebar-category-item ${selectedCategory === 'ALL' ? 'active' : ''}`}
-              onClick={() => selectCategory('ALL')}
-            >
-              <span className="category-icon" aria-hidden="true">{CATEGORY_EMOJI.ALL}</span>
-              <span className="category-label">{t('home.filterAll')}</span>
-            </button>
-            {categories.map((category) => (
-              <button
-                key={category}
-                type="button"
-                className={`sidebar-category-item ${selectedCategory === category ? 'active' : ''}`}
-                onClick={() => selectCategory(category)}
-              >
-                <span className="category-icon" aria-hidden="true">{categoryEmoji(category)}</span>
-                <span className="category-label">{t('category.' + category) || category}</span>
-              </button>
-            ))}
-          </aside>
-
-          <div className="catalog-main-content">
-            <div className="catalog-header">
-              <h2 className="section-title">
-                {selectedCategory === 'ALL'
-                  ? t('home.productFeed')
-                  : (t('category.' + selectedCategory) || selectedCategory)}
-              </h2>
-              <span className="catalog-count">{visibleProducts.length}</span>
-            </div>
-            <div className={`product-feed-grid ${isGridAnimating ? 'is-animating' : ''}`}>
-              {visibleProducts.map((product) => {
-                const firstColorImage = product.colorVariants?.find((variant) => variant.imageUrls?.length > 0)?.imageUrls?.[0]
-                const fallbackImage = product.imageUrls?.[0]
-                const imageUrl = firstColorImage || fallbackImage || ''
-                const imageBroken = brokenImageByProduct[product.id]
-                return (
-                  <article key={product.id} className="feed-card">
-                    <Link to={`/product/${product.id}?store=${encodeURIComponent(product.storeSlug)}`} className="feed-card-media-link" onClick={handleProductNavigate}>
-                      {imageUrl && !imageBroken ? (
-                        <img
-                          src={imageUrl}
-                          alt={product.name}
-                          className="feed-card-image"
-                          loading="lazy"
-                          onError={() => setBrokenImageByProduct((prev) => ({ ...prev, [product.id]: true }))}
-                        />
-                      ) : (
-                        <div className="feed-card-image-placeholder">{t('storePage.noImage')}</div>
-                      )}
-                    </Link>
-                    <div className="feed-card-content">
-                      <span className="feed-card-category">
-                        {categoryEmoji(product.storeCategory)} {t('category.' + product.storeCategory) || product.storeCategory}
-                      </span>
-                      <Link to={`/product/${product.id}?store=${encodeURIComponent(product.storeSlug)}`} className="feed-card-name-link" onClick={handleProductNavigate}>
-                        <h3 className="feed-card-name">{product.name}</h3>
-                      </Link>
-                      <p className="feed-card-store">{product.storeName}</p>
-                      <p className="feed-card-price">₪{Number(product.price).toFixed(2)}</p>
-                      <div className="feed-card-meta">
-                        <button
-                          type="button"
-                          className={`quick-add-btn ${addedProductId === product.id ? 'is-added' : ''}`}
-                          onClick={() => handleQuickAdd(product)}
-                        >
-                          {addedProductId === product.id ? t('home.added') : t('home.addToCart')}
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                )
-              })}
+      <div className="shop-section-head">
+        <h2>{t('shop.newArrivals')}</h2>
+        {firstDept && <Link to={`/store/${firstDept.slug}`}>{t('shop.seeAll')} ←</Link>}
+      </div>
+      {feed.length > 0 ? productGrid : (
+        canManage ? (
+          <div className="empty admin-empty">
+            <p>{t('home.adminNoStores')}</p>
+            <div className="admin-empty-actions">
+              <Link to="/manage" className="btn btn-primary">{t('nav.manageProducts')}</Link>
             </div>
           </div>
-        </div>
-        {stores.length === 0 && (
-          canManage ? (
-            <div className="empty admin-empty">
-              <p>{t('home.adminNoStores')}</p>
-              <div className="admin-empty-actions">
-                <Link to="/create-store" className="btn btn-primary">{t('nav.createStore')}</Link>
-                <Link to="/add-product" className="btn btn-secondary">{t('nav.addProduct')}</Link>
-              </div>
-            </div>
-          ) : (
-            <p className="empty">{t('home.noStores')} <Link to="/register">{t('nav.signUp')}</Link> {t('home.signUpAsOwner')}</p>
-          )
-        )}
-        {stores.length > 0 && visibleProducts.length === 0 && (
-          <p className="empty">{t('home.noProductsForCategory')}</p>
-        )}
-      </section>
+        ) : (
+          <p className="empty">{t('shop.comingSoon')}</p>
+        )
+      )}
     </div>
   )
 }

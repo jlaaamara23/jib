@@ -23,6 +23,7 @@ export default function StorePage() {
   const navigationType = useNavigationType()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const catParam = Number(searchParams.get('cat')) || null
   const editFromQueryHandled = useRef(false)
   const { t } = useLanguage()
   const { user } = useAuth()
@@ -80,7 +81,17 @@ export default function StorePage() {
     getStoreBySlug(slug)
       .then((s) => {
         setStore(s)
-        getStoreCategories(s.id).then(setCategories).catch(() => setCategories([]))
+        getStoreCategories(s.id)
+          .then((cats) => {
+            setCategories(cats)
+            // Opened from a home-page circle or tile: preselect that category.
+            const picked = cats.find((c) => c.id === catParam)
+            if (picked) {
+              setGroupFilter(picked.parentId ?? picked.id)
+              setCategoryFilter(picked.parentId != null ? picked.id : null)
+            }
+          })
+          .catch(() => setCategories([]))
         return getProducts(s.id)
       })
       .then(setProducts)
@@ -95,7 +106,7 @@ export default function StorePage() {
     setColorFilter('')
     setSortBy('recommended')
     loadStore()
-  }, [slug])
+  }, [slug, catParam])
 
   useEffect(() => {
     if (!loading && navigationType === 'POP') {
