@@ -7,7 +7,7 @@ import { useLanguage } from '../context/LanguageContext'
 import { hasPrice, isSellable, lineUnitPrice, usesWeightPricing } from '../utils/weightPrice'
 import { canGoBackInApp, restoreScrollPosition, saveScrollPosition } from '../utils/scrollRestoration'
 import './StorePage.css'
-import { STORE_CATEGORIES } from '../utils/categoryDisplay'
+import { STORE_CATEGORIES, storeDisplayName } from '../utils/categoryDisplay'
 
 const SIZE_OPTIONS_BY_CATEGORY = {
   SPICES: ['250G', '500G', '1KG', '2KG', '5KG'],
@@ -30,7 +30,11 @@ export default function StorePage() {
   const [products, setProducts] = useState([])
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [categories, setCategories] = useState([])
+  const [groupFilter, setGroupFilter] = useState(null)
   const [categoryFilter, setCategoryFilter] = useState(null)
+  const [sizeFilter, setSizeFilter] = useState('')
+  const [colorFilter, setColorFilter] = useState('')
+  const [sortBy, setSortBy] = useState('recommended')
   const [selectedIds, setSelectedIds] = useState([])
   const [publishMessage, setPublishMessage] = useState('')
   const [loading, setLoading] = useState(true)
@@ -60,7 +64,9 @@ export default function StorePage() {
   const [savingProduct, setSavingProduct] = useState(false)
   const [selectedSizes, setSelectedSizes] = useState({})
   const [selectedColors, setSelectedColors] = useState({})
-  const SIZE_OPTIONS = SIZE_OPTIONS_BY_CATEGORY[store?.category] || DEFAULT_SIZE_OPTIONS
+  const editCategoryName = categories.find((c) => String(c.id) === String(editProductCategoryId))?.name
+  const SIZE_OPTIONS = (editCategoryName === 'men_shoes' && SIZE_OPTIONS_BY_CATEGORY.SHOES)
+    || SIZE_OPTIONS_BY_CATEGORY[store?.category] || DEFAULT_SIZE_OPTIONS
 
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [editModalError, setEditModalError] = useState('')
@@ -83,7 +89,11 @@ export default function StorePage() {
   }
 
   useEffect(() => {
+    setGroupFilter(null)
     setCategoryFilter(null)
+    setSizeFilter('')
+    setColorFilter('')
+    setSortBy('recommended')
     loadStore()
   }, [slug])
 
@@ -375,9 +385,41 @@ export default function StorePage() {
   const statusProducts = products.filter((p) =>
     statusFilter === 'ALL' ? true : statusFilter === 'DRAFT' ? p.status === 'DRAFT' : p.status !== 'DRAFT',
   )
+  // Two levels, like big online stores: top-level categories (Dresses) and their sub-categories (Evening dresses).
+  const parentOf = (categoryId) => categories.find((c) => c.id === categoryId)?.parentId ?? categoryId
+  const inGroup = (p, groupId) => p.categoryId === groupId || parentOf(p.categoryId) === groupId
+  const topCategories = categories.filter((c) => c.parentId == null && statusProducts.some((p) => inGroup(p, c.id)))
+  const groupProducts = groupFilter == null ? statusProducts : statusProducts.filter((p) => inGroup(p, groupFilter))
   // Only show sub-categories that have products the viewer can see.
-  const shownCategories = categories.filter((c) => statusProducts.some((p) => p.categoryId === c.id))
-  const visibleProducts = categoryFilter == null ? statusProducts : statusProducts.filter((p) => p.categoryId === categoryFilter)
+  const shownCategories = groupFilter == null
+    ? []
+    : categories.filter((c) => c.parentId === groupFilter && groupProducts.some((p) => p.categoryId === c.id))
+  const categoryProducts = categoryFilter == null ? groupProducts : groupProducts.filter((p) => p.categoryId === categoryFilter)
+  const sizeOf = (p) => (p.sizeStock || []).filter((s) => (s.quantity ?? 0) > 0).map((s) => s.size)
+  const colorsOf = (p) => (p.colorVariants || []).map((v) => (v.color || '').trim()).filter(Boolean)
+  const sizeChoices = [...new Set(categoryProducts.flatMap(sizeOf))]
+  const colorChoices = [...new Set(categoryProducts.flatMap(colorsOf))].sort((a, b) => a.localeCompare(b))
+  const priceOf = (p) => (p.price == null ? null : Number(p.price))
+  const visibleProducts = categoryProducts
+    .filter((p) => !sizeFilter || sizeOf(p).includes(sizeFilter))
+    .filter((p) => !colorFilter || colorsOf(p).includes(colorFilter))
+    .slice()
+    .sort((a, b) => {
+      if (sortBy === 'newest') return b.id - a.id
+      if (sortBy === 'priceLow' || sortBy === 'priceHigh') {
+        const pa = priceOf(a), pb = priceOf(b)
+        if (pa == null) return pb == null ? 0 : 1
+        if (pb == null) return -1
+        return sortBy === 'priceLow' ? pa - pb : pb - pa
+      }
+      return 0
+    })
+  const selectGroup = (groupId) => {
+    setGroupFilter(groupId)
+    setCategoryFilter(null)
+    setSizeFilter('')
+    setColorFilter('')
+  }
   const draftCount = products.filter((p) => p.status === 'DRAFT').length
 
   if (loading) return <div className="page-loading">{t('storePage.loading')}</div>
@@ -410,8 +452,8 @@ export default function StorePage() {
           )}
         </div>
         <div className="store-header-text">
-          <h1 className="store-page-title">{store.name}</h1>
-          <p className="store-page-slug">/{store.slug}</p>
+          <h1 className="store-page-title">{storeDisplayName(store, t)}</h1>
+          <p className="store-page-slug">{t('storePage.productCount').replace('{n}', statusProducts.length)}</p>
           {canManage && (
             <div className="store-actions">
               <button type="button" className="btn btn-secondary btn-sm" onClick={openEditStore}>
@@ -456,6 +498,28 @@ export default function StorePage() {
         </div>
       )}
 
+      {topCategories.length > 0 && (
+        <nav className="category-tabs" aria-label={t('storePage.categories')}>
+          <button
+            type="button"
+            className={`category-tab${groupFilter == null ? ' active' : ''}`}
+            onClick={() => selectGroup(null)}
+          >
+            {t('storePage.allSubcategories')}
+          </button>
+          {topCategories.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              className={`category-tab${groupFilter === c.id ? ' active' : ''}`}
+              onClick={() => selectGroup(c.id)}
+            >
+              {categoryLabel(c)}
+            </button>
+          ))}
+        </nav>
+      )}
+
       {shownCategories.length > 1 && (
         <nav className="subcategory-chips" aria-label={t('storePage.subcategories')}>
           <button
@@ -463,7 +527,7 @@ export default function StorePage() {
             className={`subcategory-chip${categoryFilter == null ? ' active' : ''}`}
             onClick={() => setCategoryFilter(null)}
           >
-            {t('storePage.allSubcategories')} <span className="subcategory-count">{statusProducts.length}</span>
+            {t('storePage.allSubcategories')} <span className="subcategory-count">{groupProducts.length}</span>
           </button>
           {shownCategories.map((c) => (
             <button
@@ -472,10 +536,36 @@ export default function StorePage() {
               className={`subcategory-chip${categoryFilter === c.id ? ' active' : ''}`}
               onClick={() => setCategoryFilter(c.id)}
             >
-              {categoryLabel(c)} <span className="subcategory-count">{statusProducts.filter((p) => p.categoryId === c.id).length}</span>
+              {categoryLabel(c)} <span className="subcategory-count">{groupProducts.filter((p) => p.categoryId === c.id).length}</span>
             </button>
           ))}
         </nav>
+      )}
+
+      {products.length > 0 && (
+        <div className="shop-toolbar">
+          <span className="shop-toolbar-count">{t('storePage.productCount').replace('{n}', visibleProducts.length)}</span>
+          <div className="shop-toolbar-controls">
+            {sizeChoices.length > 0 && (
+              <select value={sizeFilter} onChange={(e) => setSizeFilter(e.target.value)} aria-label={t('storePage.filterSize')}>
+                <option value="">{t('storePage.filterSize')}</option>
+                {sizeChoices.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            )}
+            {colorChoices.length > 0 && (
+              <select value={colorFilter} onChange={(e) => setColorFilter(e.target.value)} aria-label={t('storePage.filterColor')}>
+                <option value="">{t('storePage.filterColor')}</option>
+                {colorChoices.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            )}
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} aria-label={t('storePage.sortBy')}>
+              <option value="recommended">{t('storePage.sortRecommended')}</option>
+              <option value="newest">{t('storePage.sortNewest')}</option>
+              <option value="priceLow">{t('storePage.sortPriceLow')}</option>
+              <option value="priceHigh">{t('storePage.sortPriceHigh')}</option>
+            </select>
+          </div>
+        </div>
       )}
 
       <div className="products-grid">
@@ -775,9 +865,16 @@ export default function StorePage() {
                   {t('storePage.subcategory')}
                   <select value={editProductCategoryId} onChange={(e) => setEditProductCategoryId(e.target.value)}>
                     <option value="">—</option>
-                    {categories.map((c) => (
-                      <option key={c.id} value={c.id}>{categoryLabel(c)}</option>
-                    ))}
+                    {categories.filter((c) => c.parentId == null).map((g) => {
+                      const children = categories.filter((c) => c.parentId === g.id)
+                      return children.length === 0
+                        ? <option key={g.id} value={g.id}>{categoryLabel(g)}</option>
+                        : (
+                          <optgroup key={g.id} label={categoryLabel(g)}>
+                            {children.map((c) => <option key={c.id} value={c.id}>{categoryLabel(c)}</option>)}
+                          </optgroup>
+                        )
+                    })}
                   </select>
                 </label>
               )}

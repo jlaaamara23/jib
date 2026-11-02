@@ -5,7 +5,7 @@ import { useLanguage } from '../context/LanguageContext'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { restoreScrollPosition, saveScrollPosition } from '../utils/scrollRestoration'
-import { CATEGORY_EMOJI, FEATURED_CATEGORIES, categoryEmoji } from '../utils/categoryDisplay'
+import { CATEGORY_EMOJI, FEATURED_CATEGORIES, categoryEmoji, storeDisplayName } from '../utils/categoryDisplay'
 import './Home.css'
 
 export default function Home() {
@@ -42,7 +42,7 @@ export default function Home() {
             return products.map((product) => ({
               ...product,
               storeSlug: store.slug,
-              storeName: store.name,
+              storeName: storeDisplayName(store, t),
               storeCategory: store.category,
             }))
           }),

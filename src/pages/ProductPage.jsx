@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { hasPrice, isSellable, lineUnitPrice, usesWeightPricing } from '../utils/weightPrice'
 import { canGoBackInApp } from '../utils/scrollRestoration'
+import { storeDisplayName } from '../utils/categoryDisplay'
 import './ProductPage.css'
 
 export default function ProductPage() {
@@ -145,7 +146,7 @@ export default function ProductPage() {
         ← {t('home.title')}
       </button>
       <Link to={`/store/${store.slug}`} className="product-page-store-link">
-        {store.name}
+        {storeDisplayName(store, t)}
       </Link>
       {isAdmin && product && (
         <Link
