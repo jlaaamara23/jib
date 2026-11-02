@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getStores, getProducts } from '../api/api'
 import { useLanguage } from '../context/LanguageContext'
-import { categoryEmoji } from '../utils/categoryDisplay'
+import { categoryEmoji, storeDisplayName } from '../utils/categoryDisplay'
 import './ManageProducts.css'
 
 /** Admin overview: one card per store with draft/published counts, linking to the store page where products are edited and published. */
@@ -60,7 +60,7 @@ export default function ManageProducts() {
               {cover ? <img src={cover} alt="" /> : <span aria-hidden="true">{categoryEmoji(store.category)}</span>}
             </div>
             <div className="manage-card-body">
-              <h2>{categoryEmoji(store.category)} {store.name}</h2>
+              <h2>{categoryEmoji(store.category)} {storeDisplayName(store, t)}</h2>
               <p>{t('category.' + store.category) || store.category}</p>
               <p className="manage-counts">
                 <span className="manage-badge manage-badge-draft">{t('manage.drafts')}: {drafts}</span>

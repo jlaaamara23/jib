@@ -1,5 +1,7 @@
 /** All store categories, in display order. Must match the backend StoreCategory enum. */
 export const STORE_CATEGORIES = [
+  'WOMEN',
+  'MEN',
   'KITCHEN',
   'SPICES',
   'GROCERY',
@@ -21,6 +23,8 @@ export const STORE_CATEGORIES = [
 
 export const CATEGORY_EMOJI = {
   ALL: '🏠',
+  WOMEN: '👗',
+  MEN: '🤵',
   KITCHEN: '🍳',
   SPICES: '🌶️',
   GROCERY: '🛒',
@@ -41,6 +45,9 @@ export const CATEGORY_EMOJI = {
 }
 
 export const FEATURED_CATEGORIES = [
+  'WOMEN',
+  'MEN',
+  'LUGGAGE',
   'KITCHEN',
   'CLOTHING',
   'CHILD_GAME',
@@ -48,6 +55,17 @@ export const FEATURED_CATEGORIES = [
   'HOME_DECOR',
   'BEAUTY',
 ]
+
+/** Departments are shown by their translated name; other stores by their own name. */
+export const DEPARTMENTS = ['WOMEN', 'MEN', 'LUGGAGE']
+
+export function storeDisplayName(store, t) {
+  if (store && DEPARTMENTS.includes(store.category)) {
+    const label = t('category.' + store.category)
+    if (label && label !== 'category.' + store.category) return label
+  }
+  return store?.name || ''
+}
 
 export function categoryEmoji(category) {
   return CATEGORY_EMOJI[category] || '📦'
