@@ -2,6 +2,7 @@
 export const STORE_CATEGORIES = [
   'WOMEN',
   'MEN',
+  'KIDS',
   'KITCHEN',
   'SPICES',
   'GROCERY',
@@ -25,6 +26,7 @@ export const CATEGORY_EMOJI = {
   ALL: '🏠',
   WOMEN: '👗',
   MEN: '🤵',
+  KIDS: '🧸',
   KITCHEN: '🍳',
   SPICES: '🌶️',
   GROCERY: '🛒',
@@ -57,7 +59,7 @@ export const FEATURED_CATEGORIES = [
 ]
 
 /** Departments are shown by their translated name; other stores by their own name. */
-export const DEPARTMENTS = ['WOMEN', 'MEN', 'LUGGAGE']
+export const DEPARTMENTS = ['WOMEN', 'MEN', 'KIDS', 'HOME_DECOR', 'LUGGAGE']
 
 export function storeDisplayName(store, t) {
   if (store && DEPARTMENTS.includes(store.category)) {
