@@ -619,3 +619,9 @@
 .product-card .draft-badge { position: absolute; top: 0.5rem; inset-inline-start: 0.5rem; z-index: 2; }
 .product-no-price { color: #8a4b0f; font-style: italic; }
 .add-product-submit-row { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+
+.subcategory-chips { display: flex; gap: 0.5rem; overflow-x: auto; padding: 0.25rem 0 1rem; scrollbar-width: thin; }
+.subcategory-chip { flex: 0 0 auto; border: 1px solid #e6dcd2; background: #fff; color: inherit; border-radius: 999px; padding: 0.4rem 0.9rem; font: inherit; font-size: 0.92rem; cursor: pointer; white-space: nowrap; }
+.subcategory-chip:hover { border-color: #b89a7a; }
+.subcategory-chip.active { background: #2b2420; border-color: #2b2420; color: #fff; }
+.subcategory-count { opacity: 0.6; font-size: 0.8em; margin-inline-start: 0.25rem; }

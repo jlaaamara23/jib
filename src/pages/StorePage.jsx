@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, Link, useNavigate, useSearchParams, useNavigationType } from 'react-router-dom'
-import { getStoreBySlug, getProducts, updateStore, deleteStore, updateProduct, deleteProduct, uploadImage, publishProduct, unpublishProduct, publishProducts } from '../api/api'
+import { getStoreBySlug, getProducts, getStoreCategories, updateStore, deleteStore, updateProduct, deleteProduct, uploadImage, publishProduct, unpublishProduct, publishProducts } from '../api/api'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
@@ -29,6 +29,8 @@ export default function StorePage() {
   const [store, setStore] = useState(null)
   const [products, setProducts] = useState([])
   const [statusFilter, setStatusFilter] = useState('ALL')
+  const [categories, setCategories] = useState([])
+  const [categoryFilter, setCategoryFilter] = useState(null)
   const [selectedIds, setSelectedIds] = useState([])
   const [publishMessage, setPublishMessage] = useState('')
   const [loading, setLoading] = useState(true)
@@ -47,6 +49,7 @@ export default function StorePage() {
   const [editProductName, setEditProductName] = useState('')
   const [editProductDesc, setEditProductDesc] = useState('')
   const [editProductPrice, setEditProductPrice] = useState('')
+  const [editProductCategoryId, setEditProductCategoryId] = useState('')
   const [editProductStock, setEditProductStock] = useState('0')
   const [editProductImageUrls, setEditProductImageUrls] = useState([''])
   const [editProductSizeStocks, setEditProductSizeStocks] = useState([])
@@ -71,6 +74,7 @@ export default function StorePage() {
     getStoreBySlug(slug)
       .then((s) => {
         setStore(s)
+        getStoreCategories(s.id).then(setCategories).catch(() => setCategories([]))
         return getProducts(s.id)
       })
       .then(setProducts)
@@ -79,6 +83,7 @@ export default function StorePage() {
   }
 
   useEffect(() => {
+    setCategoryFilter(null)
     loadStore()
   }, [slug])
 
@@ -157,6 +162,7 @@ export default function StorePage() {
     setEditProductName(p.name)
     setEditProductDesc(p.description || '')
     setEditProductPrice(hasPrice(p) ? String(p.price) : '')
+    setEditProductCategoryId(p.categoryId ? String(p.categoryId) : '')
     setEditProductStock(String(p.stockQuantity ?? 0))
     setEditProductImageUrls(p.imageUrls?.length ? [...p.imageUrls] : [''])
     setEditProductSizeStocks((p.sizeStock?.length ? p.sizeStock : []).map((s) => ({ size: s.size, quantity: String(s.quantity ?? 0) })))
@@ -274,7 +280,7 @@ export default function StorePage() {
         description: editProductDesc.trim() || null,
         price: parsedPrice,
         stockQuantity: totalFromSizes > 0 ? totalFromSizes : Math.max(0, parseInt(editProductStock, 10) || 0),
-        categoryId: editProduct.categoryId ?? null,
+        categoryId: editProductCategoryId ? Number(editProductCategoryId) : null,
         imageUrls: urls.length ? urls : null,
         sizeStocks: sizeStocksPayload.length > 0 ? sizeStocksPayload : null,
         colorVariants: colorVariantsPayload.length > 0 ? colorVariantsPayload : null,
@@ -361,9 +367,17 @@ export default function StorePage() {
   const toggleSelected = (id) =>
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
 
-  const visibleProducts = products.filter((p) =>
+  const categoryLabel = (c) => {
+    const key = `subcategories.${c.name}`
+    const label = t(key)
+    return typeof label === 'string' && label !== key ? label : c.name
+  }
+  const statusProducts = products.filter((p) =>
     statusFilter === 'ALL' ? true : statusFilter === 'DRAFT' ? p.status === 'DRAFT' : p.status !== 'DRAFT',
   )
+  // Only show sub-categories that have products the viewer can see.
+  const shownCategories = categories.filter((c) => statusProducts.some((p) => p.categoryId === c.id))
+  const visibleProducts = categoryFilter == null ? statusProducts : statusProducts.filter((p) => p.categoryId === categoryFilter)
   const draftCount = products.filter((p) => p.status === 'DRAFT').length
 
   if (loading) return <div className="page-loading">{t('storePage.loading')}</div>
@@ -440,6 +454,28 @@ export default function StorePage() {
           </div>
           {publishMessage && <p className="draft-message">{publishMessage}</p>}
         </div>
+      )}
+
+      {shownCategories.length > 1 && (
+        <nav className="subcategory-chips" aria-label={t('storePage.subcategories')}>
+          <button
+            type="button"
+            className={`subcategory-chip${categoryFilter == null ? ' active' : ''}`}
+            onClick={() => setCategoryFilter(null)}
+          >
+            {t('storePage.allSubcategories')} <span className="subcategory-count">{statusProducts.length}</span>
+          </button>
+          {shownCategories.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              className={`subcategory-chip${categoryFilter === c.id ? ' active' : ''}`}
+              onClick={() => setCategoryFilter(c.id)}
+            >
+              {categoryLabel(c)} <span className="subcategory-count">{statusProducts.filter((p) => p.categoryId === c.id).length}</span>
+            </button>
+          ))}
+        </nav>
       )}
 
       <div className="products-grid">
@@ -734,6 +770,17 @@ export default function StorePage() {
                 ))}
                 <button type="button" className="btn-add-image" onClick={addEditColorVariant}>{t('addProduct.addColor')}</button>
               </div>
+              {categories.length > 0 && (
+                <label>
+                  {t('storePage.subcategory')}
+                  <select value={editProductCategoryId} onChange={(e) => setEditProductCategoryId(e.target.value)}>
+                    <option value="">—</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>{categoryLabel(c)}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
               <label>
                 {t('addProduct.price')}
                 <input type="number" step="0.01" min="0.01" value={editProductPrice} onChange={(e) => setEditProductPrice(e.target.value)} required={editProduct?.status !== 'DRAFT'} />
