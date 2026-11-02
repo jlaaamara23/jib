@@ -117,6 +117,13 @@ export async function getStoreById(id) {
   return { ...data, iconUrl: toAbsoluteAssetUrl(data?.iconUrl) || '' };
 }
 
+export async function getStoreCategories(storeId) {
+  const res = await fetch(`${API_BASE}/stores/id/${storeId}/categories`);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
+}
+
 export async function getProducts(storeId, categoryId = null) {
   let url = `${API_BASE}/stores/${storeId}/products`;
   if (categoryId) url += `?categoryId=${categoryId}`;
