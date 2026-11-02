@@ -68,6 +68,9 @@ export const translations = {
       MEN: 'Men',
     },
     subcategories: {
+      women_ball_gowns: 'Ball gowns',
+      women_bridal_gowns: 'Bridal gowns',
+      group_women_bridal: 'Bridal',
       group_women_dresses: 'Dresses',
       group_women_kaftans: 'Kaftans',
       group_women_sets: 'Sets & pajamas',
@@ -325,6 +328,9 @@ export const translations = {
       MEN: 'גברים',
     },
     subcategories: {
+      women_ball_gowns: 'שמלות נשף',
+      women_bridal_gowns: 'שמלות כלה',
+      group_women_bridal: 'כלות',
       group_women_dresses: 'שמלות',
       group_women_kaftans: 'קפטנים',
       group_women_sets: 'סטים ופיג\'מות',
@@ -582,6 +588,9 @@ export const translations = {
       MEN: 'رجال',
     },
     subcategories: {
+      women_ball_gowns: 'فساتين سهرة منفوشة',
+      women_bridal_gowns: 'فساتين زفاف',
+      group_women_bridal: 'عرائس',
       group_women_dresses: 'فساتين',
       group_women_kaftans: 'قفاطين',
       group_women_sets: 'أطقم وبجامات',
