@@ -8,6 +8,7 @@ import { restoreScrollPosition, saveScrollPosition } from '../utils/scrollRestor
 import { DEPARTMENTS, storeDisplayName } from '../utils/categoryDisplay'
 import { hasPrice } from '../utils/weightPrice'
 import './Home.css'
+import { productName, allProductNames } from '../utils/productName'
 
 const productImage = (p) =>
   p.colorVariants?.find((v) => v.imageUrls?.length > 0)?.imageUrls?.[0] || p.imageUrls?.[0] || ''
@@ -16,7 +17,7 @@ export default function Home() {
   const navigationType = useNavigationType()
   const [searchParams] = useSearchParams()
   const query = (searchParams.get('q') || '').trim().toLowerCase()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const { addToCart } = useCart()
   const { isAdmin, user } = useAuth()
   const canManage = isAdmin || user?.role === 'OWNER'
@@ -88,7 +89,7 @@ export default function Home() {
   const departments = stores.filter((s) => DEPARTMENTS.includes(s.category))
   const firstDept = departments[0]
 
-  const matches = (p) => !query || `${p.name} ${p.description || ''}`.toLowerCase().includes(query)
+  const matches = (p) => !query || `${allProductNames(p)} ${p.description || ''}`.toLowerCase().includes(query)
   const feed = products.filter(matches).slice().sort((a, b) => b.id - a.id).slice(0, query ? 120 : 20)
 
   const handleQuickAdd = (product) => {
@@ -111,7 +112,7 @@ export default function Home() {
               {imageUrl && !brokenImageByProduct[p.id] ? (
                 <img
                   src={imageUrl}
-                  alt={p.name}
+                  alt={productName(p, lang)}
                   loading="lazy"
                   onError={() => setBrokenImageByProduct((prev) => ({ ...prev, [p.id]: true }))}
                 />
@@ -121,7 +122,7 @@ export default function Home() {
               {isDraft ? <span className="shop-tag draft">{t('shop.draft')}</span> : <span className="shop-tag">{t('shop.new')}</span>}
             </Link>
             <div className="shop-card-body">
-              <Link to={link} className="shop-card-name" onClick={handleProductNavigate}>{p.name}</Link>
+              <Link to={link} className="shop-card-name" onClick={handleProductNavigate}>{productName(p, lang)}</Link>
               <span className="shop-card-dept">{storeDisplayName(p.store, t)}</span>
               <div className="shop-card-bottom">
                 <span className="shop-card-price">{hasPrice(p) ? `₪${Number(p.price).toFixed(2)}` : t('shop.noPrice')}</span>

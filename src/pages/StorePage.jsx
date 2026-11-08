@@ -8,6 +8,7 @@ import { hasPrice, isSellable, lineUnitPrice, usesWeightPricing } from '../utils
 import { canGoBackInApp, restoreScrollPosition, saveScrollPosition } from '../utils/scrollRestoration'
 import './StorePage.css'
 import { STORE_CATEGORIES, storeDisplayName } from '../utils/categoryDisplay'
+import { productName } from '../utils/productName'
 
 const SIZE_OPTIONS_BY_CATEGORY = {
   SPICES: ['250G', '500G', '1KG', '2KG', '5KG'],
@@ -25,7 +26,7 @@ export default function StorePage() {
   const [searchParams] = useSearchParams()
   const catParam = Number(searchParams.get('cat')) || null
   const editFromQueryHandled = useRef(false)
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const { user } = useAuth()
   const [store, setStore] = useState(null)
   const [products, setProducts] = useState([])
@@ -625,7 +626,7 @@ export default function StorePage() {
               </div>
             )}
             <h3 className="product-name">
-              <Link to={`/product/${p.id}?store=${encodeURIComponent(slug)}`} className="product-name-link" onClick={handleProductNavigate}>{p.name}</Link>
+              <Link to={`/product/${p.id}?store=${encodeURIComponent(slug)}`} className="product-name-link" onClick={handleProductNavigate}>{productName(p, lang)}</Link>
             </h3>
             {p.description && <p className="product-desc">{p.description}</p>}
             <p className="product-price">
