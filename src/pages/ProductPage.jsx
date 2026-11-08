@@ -8,13 +8,14 @@ import { hasPrice, isSellable, lineUnitPrice, usesWeightPricing } from '../utils
 import { canGoBackInApp } from '../utils/scrollRestoration'
 import { storeDisplayName } from '../utils/categoryDisplay'
 import './ProductPage.css'
+import { productName } from '../utils/productName'
 
 export default function ProductPage() {
   const { productId } = useParams()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const storeFromQuery = searchParams.get('store') || ''
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const { addToCart } = useCart()
   const { isAdmin, user } = useAuth()
   const [product, setProduct] = useState(null)
@@ -182,7 +183,7 @@ export default function ProductPage() {
             ))}
           </div>
         )}
-        <h1 className="product-page-title">{product.name}</h1>
+        <h1 className="product-page-title">{productName(product, lang)}</h1>
         {product.description && <p className="product-page-desc">{product.description}</p>}
         {product.status === 'DRAFT' && <p className="draft-badge">{t('storePage.draft')}</p>}
         <p className="product-page-price">

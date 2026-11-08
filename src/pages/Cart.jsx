@@ -7,6 +7,7 @@ import { createOrder, createPaymentIntent, confirmPayment, getProfile } from '..
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import './Cart.css'
+import { productName } from '../utils/productName'
 
 const stripePk = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || ''
 const stripePromise = stripePk ? loadStripe(stripePk) : null
@@ -68,7 +69,7 @@ function CheckoutForm({ clientSecret, orderIds, totalPrice, onSuccess, onError, 
 }
 
 export default function Cart() {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const { items, totalPrice, updateQuantity, removeFromCart, clearCart } = useCart()
   const { user } = useAuth()
   const [profile, setProfile] = useState(null)
@@ -252,7 +253,7 @@ export default function Cart() {
               {storeItems.map((item) => (
                 <li key={`${item.id}-${item.storeId}-${item.size || ''}-${item.color || ''}`} className="cart-item">
                   <div className="cart-item-info">
-                    <span className="cart-item-name">{item.name}{item.size ? ` (${item.size})` : ''}{item.color ? ` · ${item.color}` : ''}</span>
+                    <span className="cart-item-name">{productName(item, lang)}{item.size ? ` (${item.size})` : ''}{item.color ? ` · ${item.color}` : ''}</span>
                     <span className="cart-item-price">₪{Number(item.price).toFixed(2)} × {item.quantity}</span>
                   </div>
                   <div className="cart-item-actions">
