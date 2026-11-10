@@ -82,6 +82,7 @@ export const translations = {
     category: {
       KITCHEN: 'Kitchen',
       SPICES: 'Spices',
+      ACCESSORIES: 'Accessories',
       GROCERY: 'Grocery',
       CLOTHING: 'Clothing',
       WOMEN_UNDERWEAR: 'Women Underwear',
@@ -424,6 +425,7 @@ export const translations = {
     category: {
       KITCHEN: 'מטבח',
       SPICES: 'תבלינים',
+      ACCESSORIES: 'אקססוריז',
       GROCERY: 'מכולת',
       CLOTHING: 'ביגוד',
       WOMEN_UNDERWEAR: 'הלבשה תחתונה נשים',
@@ -766,6 +768,7 @@ export const translations = {
     category: {
       KITCHEN: 'مطبخ',
       SPICES: 'توابل',
+      ACCESSORIES: 'إكسسوارات',
       GROCERY: 'بقالة',
       CLOTHING: 'ملابس',
       WOMEN_UNDERWEAR: 'ملابس داخلية نسائية',

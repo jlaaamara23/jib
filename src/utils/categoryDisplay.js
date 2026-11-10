@@ -1,6 +1,7 @@
 /** All store categories, in display order. Must match the backend StoreCategory enum. */
 export const STORE_CATEGORIES = [
   'WOMEN',
+  'ACCESSORIES',
   'MEN',
   'KIDS',
   'KITCHEN',
@@ -29,6 +30,7 @@ export const CATEGORY_EMOJI = {
   KIDS: '🧸',
   KITCHEN: '🍳',
   SPICES: '🌶️',
+  ACCESSORIES: '💍',
   GROCERY: '🛒',
   CLOTHING: '👕',
   WOMEN_UNDERWEAR: '👗',
@@ -59,7 +61,7 @@ export const FEATURED_CATEGORIES = [
 ]
 
 /** Departments are shown by their translated name; other stores by their own name. */
-export const DEPARTMENTS = ['WOMEN', 'MEN', 'KIDS', 'HOME_DECOR', 'BEAUTY', 'SPICES', 'LUGGAGE']
+export const DEPARTMENTS = ['WOMEN', 'ACCESSORIES', 'MEN', 'KIDS', 'HOME_DECOR', 'BEAUTY', 'SPICES', 'LUGGAGE']
 
 export function storeDisplayName(store, t) {
   if (store && DEPARTMENTS.includes(store.category)) {
