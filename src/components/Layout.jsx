@@ -10,7 +10,7 @@ import { DEPARTMENTS, storeDisplayName } from '../utils/categoryDisplay'
 import './Layout.css'
 
 // Departments that will open later; shown greyed out like big online stores do.
-const COMING_SOON = ['BEAUTY', 'ELECTRONICS']
+const COMING_SOON = ['ELECTRONICS']
 
 export default function Layout() {
   useScrollRestoration()
