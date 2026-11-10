@@ -59,7 +59,7 @@ export const FEATURED_CATEGORIES = [
 ]
 
 /** Departments are shown by their translated name; other stores by their own name. */
-export const DEPARTMENTS = ['WOMEN', 'MEN', 'KIDS', 'HOME_DECOR', 'SPICES', 'LUGGAGE']
+export const DEPARTMENTS = ['WOMEN', 'MEN', 'KIDS', 'HOME_DECOR', 'BEAUTY', 'SPICES', 'LUGGAGE']
 
 export function storeDisplayName(store, t) {
   if (store && DEPARTMENTS.includes(store.category)) {
