@@ -9,9 +9,10 @@ import { DEPARTMENTS, storeDisplayName } from '../utils/categoryDisplay'
 import { hasPrice } from '../utils/weightPrice'
 import './Home.css'
 import { productName, allProductNames } from '../utils/productName'
+import { sizedImage } from '../utils/image'
 
 const productImage = (p) =>
-  p.colorVariants?.find((v) => v.imageUrls?.length > 0)?.imageUrls?.[0] || p.imageUrls?.[0] || ''
+  sizedImage(p.colorVariants?.find((v) => v.imageUrls?.length > 0)?.imageUrls?.[0] || p.imageUrls?.[0] || '', 480)
 
 export default function Home() {
   const navigationType = useNavigationType()

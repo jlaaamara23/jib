@@ -8,6 +8,7 @@ import { hasPrice, isSellable, lineUnitPrice, usesWeightPricing } from '../utils
 import { canGoBackInApp } from '../utils/scrollRestoration'
 import { storeDisplayName } from '../utils/categoryDisplay'
 import './ProductPage.css'
+import { sizedImage } from '../utils/image'
 import { productName } from '../utils/productName'
 
 export default function ProductPage() {
@@ -162,7 +163,7 @@ export default function ProductPage() {
         {displayImages && displayImages.length > 0 ? (
           <div className="product-page-images">
             {displayImages.map((url, i) => (
-              <img key={i} src={url} alt="" className="product-page-image" />
+              <img key={i} src={sizedImage(url, 1000)} alt="" className="product-page-image" loading={i ? 'lazy' : 'eager'} decoding="async" />
             ))}
           </div>
         ) : (
