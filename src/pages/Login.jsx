@@ -41,6 +41,7 @@ export default function Login() {
           {t('auth.password')}
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
         </label>
+        <Link to="/forgot-password" className="auth-forgot-link">{t('auth.forgotPassword')}</Link>
         <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
           {loading ? t('auth.loggingIn') : t('auth.login')}
         </button>

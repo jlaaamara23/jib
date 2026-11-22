@@ -7,6 +7,8 @@ import ProductPage from './pages/ProductPage'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import VerifyEmail from './pages/VerifyEmail'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import Cart from './pages/Cart'
 import MyOrders from './pages/MyOrders'
 import AddProduct from './pages/AddProduct'
@@ -48,6 +50,8 @@ export default function App() {
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
         <Route path="verify-email" element={<VerifyEmail />} />
+        <Route path="forgot-password" element={<ForgotPassword />} />
+        <Route path="reset-password" element={<ResetPassword />} />
         <Route path="cart" element={<Protected><Cart /></Protected>} />
         <Route path="orders" element={<Protected><MyOrders /></Protected>} />
         <Route path="add-product" element={<Protected requireManager><AddProduct /></Protected>} />

@@ -196,6 +196,28 @@ export async function resendVerificationEmail(email) {
   return data;
 }
 
+export async function forgotPassword(email) {
+  const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+    method: 'POST',
+    headers: headers(false),
+    body: JSON.stringify({ email: (email || '').trim() }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Failed to send');
+  return data;
+}
+
+export async function resetPassword(token, password) {
+  const res = await fetch(`${API_BASE}/auth/reset-password`, {
+    method: 'POST',
+    headers: headers(false),
+    body: JSON.stringify({ token, password }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Failed to reset');
+  return data;
+}
+
 export async function createStore(name, category, iconUrl = '') {
   const body = { name, category };
   if (iconUrl && iconUrl.trim()) body.iconUrl = iconUrl.trim();
