@@ -8,6 +8,7 @@ import { hasPrice, isSellable, lineUnitPrice, usesWeightPricing } from '../utils
 import { canGoBackInApp, restoreScrollPosition, saveScrollPosition } from '../utils/scrollRestoration'
 import './StorePage.css'
 import { STORE_CATEGORIES, storeDisplayName } from '../utils/categoryDisplay'
+import { sizedImage } from '../utils/image'
 import { productName } from '../utils/productName'
 
 const SIZE_OPTIONS_BY_CATEGORY = {
@@ -603,7 +604,7 @@ export default function StorePage() {
               <Link to={`/product/${p.id}?store=${encodeURIComponent(slug)}`} className="product-card-images-link" onClick={handleProductNavigate}>
                 <div className="product-card-images">
                   {displayImages.map((url, i) => (
-                    <img key={i} src={url} alt="" className="product-card-image" />
+                    <img key={i} src={sizedImage(url, 480)} alt="" className="product-card-image" loading="lazy" decoding="async" />
                   ))}
                 </div>
               </Link>
