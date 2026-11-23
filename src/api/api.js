@@ -365,11 +365,11 @@ export async function deleteProduct(id) {
   }
 }
 
-export async function createOrder(storeId, items) {
+export async function createOrder(storeId, items, shippingFee) {
   const res = await fetch(`${API_BASE}/orders`, {
     method: 'POST',
     headers: headers(),
-    body: JSON.stringify({ storeId, items }),
+    body: JSON.stringify({ storeId, items, shippingFee }),
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
