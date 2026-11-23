@@ -256,3 +256,19 @@
   padding: 0.75rem;
   font-size: 1rem;
 }
+
+.cart-subtotal {
+  margin: 0.15rem 0;
+  color: var(--text-muted, #555);
+}
+.cart-free-shipping {
+  color: #15803d;
+}
+.cart-free-shipping-hint {
+  margin: 0.4rem 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  background: #fff8e1;
+  color: #92400e;
+  font-size: 0.92rem;
+}

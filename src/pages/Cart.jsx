@@ -82,6 +82,11 @@ export default function Cart() {
   const [phoneInput, setPhoneInput] = useState('')
 
   const MIN_ORDER = 80
+  // Delivery is 50 ₪ per checkout, free from 500 ₪ (the backend accepts only these values).
+  const SHIPPING_FEE = 50
+  const FREE_SHIPPING_FROM = 500
+  const shippingFee = totalPrice >= FREE_SHIPPING_FROM ? 0 : SHIPPING_FEE
+  const grandTotal = totalPrice + shippingFee
 
   const byStore = items.reduce((acc, item) => {
     const key = item.storeId
@@ -127,10 +132,10 @@ export default function Cart() {
     setLoading(true)
     try {
       const storeIds = Object.keys(byStore)
-      for (const sid of storeIds) {
+      for (const [n, sid] of storeIds.entries()) {
         const storeItems = byStore[sid].items
         const itemsPayload = storeItems.map((i) => ({ productId: i.id, quantity: i.quantity, size: i.size || undefined, color: i.color || undefined }))
-        await createOrder(Number(sid), itemsPayload)
+        await createOrder(Number(sid), itemsPayload, n === 0 ? shippingFee : undefined)
       }
       clearCart()
       setPaymentDone(true)
@@ -149,14 +154,14 @@ export default function Cart() {
     try {
       const storeIds = Object.keys(byStore)
       const ids = []
-      for (const sid of storeIds) {
+      for (const [n, sid] of storeIds.entries()) {
         const storeItems = byStore[sid].items
         const itemsPayload = storeItems.map((i) => ({ productId: i.id, quantity: i.quantity, size: i.size || undefined, color: i.color || undefined }))
-        const res = await createOrder(Number(sid), itemsPayload)
+        const res = await createOrder(Number(sid), itemsPayload, n === 0 ? shippingFee : undefined)
         ids.push(res.id)
       }
       setOrderIds(ids)
-      const { clientSecret: secret } = await createPaymentIntent(totalPrice, 'ils')
+      const { clientSecret: secret } = await createPaymentIntent(grandTotal, 'ils')
       setClientSecret(secret)
     } catch (err) {
       setError(err.message || 'Checkout failed')
@@ -199,10 +204,10 @@ export default function Cart() {
     return (
       <div className="cart-page">
         <h1>{t('cart.payWithCard')}</h1>
-        <p className="cart-total">{t('cart.total')}: ₪{totalPrice.toFixed(2)}</p>
+        <p className="cart-total">{t('cart.total')}: ₪{grandTotal.toFixed(2)}</p>
         {error && <div className="cart-error">{error}</div>}
         {stripePromise ? (
-          <StripeWrapper clientSecret={clientSecret} orderIds={orderIds} totalPrice={totalPrice} onSuccess={handlePaymentSuccess} onError={setError} t={t} />
+          <StripeWrapper clientSecret={clientSecret} orderIds={orderIds} totalPrice={grandTotal} onSuccess={handlePaymentSuccess} onError={setError} t={t} />
         ) : (
           <p className="empty">{t('cart.paymentNotConfigured')}</p>
         )}
@@ -269,7 +274,16 @@ export default function Cart() {
         ))}
       </div>
       <div className="cart-footer">
-        <p className="cart-total">{t('cart.total')}: ₪{totalPrice.toFixed(2)}</p>
+        <p className="cart-subtotal">{t('cart.subtotal')}: ₪{totalPrice.toFixed(2)}</p>
+        <p className="cart-subtotal">
+          {t('cart.shipping')}: {shippingFee ? `₪${shippingFee.toFixed(2)}` : <b className="cart-free-shipping">{t('cart.freeShipping')}</b>}
+        </p>
+        {shippingFee > 0 && (
+          <p className="cart-free-shipping-hint">
+            {t('cart.addForFreeShipping').replace('{amount}', `₪${(FREE_SHIPPING_FROM - totalPrice).toFixed(2)}`)}
+          </p>
+        )}
+        <p className="cart-total">{t('cart.total')}: ₪{grandTotal.toFixed(2)}</p>
         {storesBelowMin.length > 0 && (
           <p className="cart-minimum-hint">
             {t('cart.minimumOrder')} {t('cart.minimumOrderHint')}
