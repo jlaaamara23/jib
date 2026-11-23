@@ -118,7 +118,7 @@ export default function Home() {
       text: t('shop.slideShippingText'),
       to: firstDeptLink,
       cta: t('home.shopNow'),
-      images: slides[0].images.slice(0, 1),
+      images: slides[0].images,
     })
   }
 
