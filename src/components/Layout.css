@@ -433,3 +433,81 @@
     padding: 1rem 0.75rem calc(1.5rem + env(safe-area-inset-bottom));
   }
 }
+
+/* ----- Phone tab bar ----- */
+.tabbar { display: none; }
+
+@media (max-width: 767px) {
+  .tabbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    background: #fff;
+    border-top: 1px solid var(--border);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 16px rgba(20, 33, 61, 0.06);
+  }
+
+  .tabbar-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    background: none;
+    border: 0;
+    font-family: inherit;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .tabbar-item span { font-size: 1.25rem; line-height: 1.2; }
+  .tabbar-item.active { color: var(--navy); font-weight: 700; }
+
+  .tabbar-badge {
+    position: absolute;
+    top: -2px;
+    inset-inline-end: 22%;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--sale);
+    color: #fff;
+    font-size: 0.65rem;
+    font-style: normal;
+    line-height: 17px;
+    text-align: center;
+  }
+
+  .main { padding-bottom: 84px; }
+  .site-footer { padding-bottom: 84px; }
+}
+
+/* ----- WhatsApp button ----- */
+.wa-fab {
+  position: fixed;
+  bottom: 24px;
+  inset-inline-start: 24px;
+  z-index: 60;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #25d366;
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+}
+
+.wa-fab:hover { color: #fff; filter: brightness(1.05); }
+
+@media (max-width: 767px) {
+  .wa-fab { bottom: 84px; inset-inline-start: 14px; width: 50px; height: 50px; }
+}

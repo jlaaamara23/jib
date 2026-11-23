@@ -167,3 +167,13 @@ html[dir="rtl"][lang="ar"] {
 [dir="rtl"] textarea {
   text-align: right;
 }
+
+/* Lighter, cleaner surfaces (2026 refresh) */
+:root {
+  --bg: #fafaf8;
+  --bg-subtle: #f3f1ec;
+  --border: #ebe7df;
+  --radius: 12px;
+  --radius-lg: 18px;
+  --shadow: 0 2px 12px rgba(20, 33, 61, 0.06);
+}

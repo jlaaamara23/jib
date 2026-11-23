@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react'
 import { translations, RTL_LANGS } from '../i18n/translations'
 
 const STORAGE_KEY = 'جيب_lang'
-const DEFAULT_LANG = 'en'
+const DEFAULT_LANG = 'he'
 
 const LanguageContext = createContext(null)
 

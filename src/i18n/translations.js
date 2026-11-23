@@ -8,6 +8,10 @@ export const translations = {
       hint: 'Open a category to see its products. There you can edit price, sizes, colours and stock (saving keeps a product as a draft), and select drafts to publish them.',
     },
     shop: {
+      slideNew: 'JUST IN',
+      slideText: '{n} styles, new every week',
+      slideShippingTitle: 'Free delivery from ₪500',
+      slideShippingText: 'Home delivery nationwide, personal service on WhatsApp',
       promoBar: 'JIBI · Free delivery from ₪500 · Personal service on WhatsApp',
       search: 'Search',
       searchPlaceholder: 'Search dresses, kaftans, suits...',
@@ -292,6 +296,18 @@ export const translations = {
         ALL: 'All',
       },
     },
+    wishlist: {
+      title: 'Wishlist',
+      add: 'Add to wishlist',
+      remove: 'Remove from wishlist',
+      empty: 'Nothing saved yet. Tap ♡ on a product to save it.',
+    },
+    tabbar: {
+      label: 'Main',
+      home: 'Home',
+      categories: 'Categories',
+      account: 'Account',
+    },
     cart: {
       deliveryTitle: 'Delivery address',
       fullName: 'Full name',
@@ -450,6 +466,10 @@ export const translations = {
       hint: 'פתח קטגוריה כדי לראות את המוצרים שלה. שם ניתן לערוך מחיר, מידות, צבעים ומלאי (השמירה משאירה את המוצר כטיוטה), ולבחור טיוטות כדי לפרסם אותן.',
     },
     shop: {
+      slideNew: 'חדש באתר',
+      slideText: '{n} דגמים, חדשים כל שבוע',
+      slideShippingTitle: 'משלוח חינם מעל ₪500',
+      slideShippingText: 'משלוח עד הבית לכל הארץ ושירות אישי בוואטסאפ',
       promoBar: 'JIBI · משלוח חינם מעל ₪500 · שירות אישי בוואטסאפ',
       search: 'חיפוש',
       searchPlaceholder: 'חפשו שמלות, קפטנים, חליפות...',
@@ -734,6 +754,18 @@ export const translations = {
         ALL: 'הכל',
       },
     },
+    wishlist: {
+      title: 'אהבתי',
+      add: 'הוסף לאהבתי',
+      remove: 'הסר מאהבתי',
+      empty: 'עוד לא שמרת מוצרים. לחץ על ♡ במוצר כדי לשמור אותו.',
+    },
+    tabbar: {
+      label: 'ראשי',
+      home: 'בית',
+      categories: 'קטגוריות',
+      account: 'חשבון',
+    },
     cart: {
       deliveryTitle: 'כתובת למשלוח',
       fullName: 'שם מלא',
@@ -892,6 +924,10 @@ export const translations = {
       hint: 'افتح فئة لرؤية منتجاتها. هناك يمكنك تعديل السعر والمقاسات والألوان والمخزون (الحفظ يُبقي المنتج كمسودة)، وتحديد المسودات لنشرها.',
     },
     shop: {
+      slideNew: 'جديد',
+      slideText: '{n} موديل، جديد كل أسبوع',
+      slideShippingTitle: 'توصيل مجاني فوق ₪500',
+      slideShippingText: 'توصيل للبيت لكل البلاد وخدمة شخصية عبر واتساب',
       promoBar: 'JIBI · توصيل مجاني فوق ₪500 · خدمة شخصية عبر واتساب',
       search: 'بحث',
       searchPlaceholder: 'ابحثوا عن فساتين، قفاطين، بدل...',
@@ -1175,6 +1211,18 @@ export const translations = {
         DELIVERED: 'تم التسليم',
         ALL: 'الكل',
       },
+    },
+    wishlist: {
+      title: 'المفضلة',
+      add: 'أضف للمفضلة',
+      remove: 'أزل من المفضلة',
+      empty: 'لا توجد منتجات محفوظة بعد. اضغط ♡ على المنتج لحفظه.',
+    },
+    tabbar: {
+      label: 'رئيسي',
+      home: 'الرئيسية',
+      categories: 'الأقسام',
+      account: 'حسابي',
     },
     cart: {
       deliveryTitle: 'عنوان التوصيل',
