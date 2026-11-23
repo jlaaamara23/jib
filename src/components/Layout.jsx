@@ -140,6 +140,9 @@ export default function Layout() {
           {isAuthenticated ? (
             <>
               <Link to="/orders" className="nav-link" onClick={closeMenu}>{t('nav.myOrders')}</Link>
+              {(user?.role === 'ADMIN' || user?.role === 'STAFF') && (
+                <Link to="/admin/orders" className="nav-link nav-owner" onClick={closeMenu}>{t('nav.ordersAdmin')}</Link>
+              )}
               {canManageStore && (
                 <>
                   <Link to="/create-store" className="nav-link nav-owner" onClick={closeMenu}>{t('nav.createStore')}</Link>

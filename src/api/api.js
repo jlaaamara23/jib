@@ -365,11 +365,11 @@ export async function deleteProduct(id) {
   }
 }
 
-export async function createOrder(storeId, items, shippingFee) {
+export async function createOrder(storeId, items, shippingFee, shipping) {
   const res = await fetch(`${API_BASE}/orders`, {
     method: 'POST',
     headers: headers(),
-    body: JSON.stringify({ storeId, items, shippingFee }),
+    body: JSON.stringify({ storeId, items, shippingFee, shipping }),
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
@@ -389,6 +389,17 @@ export async function getMyOrders() {
     throw new Error(data.error || 'Failed to load orders');
   }
   return res.json();
+}
+
+export async function updateOrderFulfillment(orderId, fulfillment) {
+  const res = await fetch(`${API_BASE}/orders/${orderId}/fulfillment`, {
+    method: 'PATCH',
+    headers: headers(),
+    body: JSON.stringify({ fulfillment }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Failed to update the order');
+  return data;
 }
 
 export async function getAllOrdersForAdmin() {
