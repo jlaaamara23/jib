@@ -643,7 +643,8 @@
 .product-card-images .product-card-image,
 .product-card-images .product-card-image:only-child,
 .product-card-image { width: 100%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; object-position: top; border-radius: 0; }
-.product-card-images .product-card-image:not(:first-child) { display: none; }
+/* Only the first photo; the wishlist heart button sits before it, so match by type, not child position. */
+.product-card-images .product-card-image:not(:first-of-type) { display: none; }
 .store-header { border: 0; box-shadow: var(--shadow); }
 .subcategory-chip.active { background: var(--navy); border-color: var(--navy); color: var(--gold); }
 .category-tab.active { color: var(--navy); border-bottom-color: var(--gold); }
