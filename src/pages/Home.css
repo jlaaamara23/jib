@@ -436,12 +436,14 @@
   display: grid;
   grid-template-columns: 1fr 1.2fr;
   opacity: 0;
-  transition: opacity 0.7s ease;
+  transition: opacity 0.3s ease;
   pointer-events: none;
 }
 
+/* The old slide fades out first, then the new one fades in, so two texts never overlap. */
 .hero2-slide.is-active {
   opacity: 1;
+  transition: opacity 0.45s ease 0.3s;
   pointer-events: auto;
 }
 
