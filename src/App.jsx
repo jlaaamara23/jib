@@ -15,6 +15,7 @@ import AddProduct from './pages/AddProduct'
 import ManageProducts from './pages/ManageProducts'
 import CreateStore from './pages/CreateStore'
 import OrdersAdmin from './pages/OrdersAdmin'
+import Wishlist from './pages/Wishlist'
 
 function Protected({ children, requireAuth = true, requireManager = false, requireAdmin = false, requireStaff = false }) {
   const { isAuthenticated, user, loading } = useAuth()
@@ -58,6 +59,7 @@ export default function App() {
         <Route path="forgot-password" element={<ForgotPassword />} />
         <Route path="reset-password" element={<ResetPassword />} />
         <Route path="cart" element={<Protected><Cart /></Protected>} />
+        <Route path="wishlist" element={<Wishlist />} />
         <Route path="orders" element={<Protected><MyOrders /></Protected>} />
         <Route path="add-product" element={<Protected requireManager><AddProduct /></Protected>} />
         <Route path="manage" element={<Protected requireAdmin><ManageProducts /></Protected>} />

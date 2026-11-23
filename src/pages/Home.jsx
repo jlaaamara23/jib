@@ -10,6 +10,8 @@ import { hasPrice } from '../utils/weightPrice'
 import './Home.css'
 import { productName, allProductNames } from '../utils/productName'
 import { sizedImage } from '../utils/image'
+import HeroCarousel from '../components/HeroCarousel'
+import WishHeart from '../components/WishHeart'
 
 const productImage = (p) =>
   sizedImage(p.colorVariants?.find((v) => v.imageUrls?.length > 0)?.imageUrls?.[0] || p.imageUrls?.[0] || '', 480)
@@ -80,15 +82,45 @@ export default function Home() {
     .filter((x) => x.items.length > 0)
     .sort((a, b) => b.items.length - a.items.length)
     .slice(0, 10)
+  const departments = stores.filter((s) => DEPARTMENTS.includes(s.category))
+  const firstDept = departments[0]
+  const firstDeptLink = firstDept ? `/store/${firstDept.slug}` : '/'
   const groupTiles = categories
     .filter((c) => c.parentId == null)
     .map((c) => ({ c, items: productsIn(c) }))
     .filter((x) => x.items.length > 0)
     .sort((a, b) => b.items.length - a.items.length)
     .slice(0, 3)
-  const heroImages = groupTiles.map((x) => productImage(x.items[0])).filter(Boolean).slice(0, 2)
-  const departments = stores.filter((s) => DEPARTMENTS.includes(s.category))
-  const firstDept = departments[0]
+  // One slide per big category (two of its photos), plus a free-delivery slide.
+  const bigGroups = categories
+    .filter((c) => c.parentId == null)
+    .map((c) => ({ c, items: productsIn(c).filter((p) => p.imageUrls?.length) }))
+    .filter((x) => x.items.length >= 2)
+    .sort((a, b) => b.items.length - a.items.length)
+    .slice(0, 3)
+  const tones = ['cream', 'blush', 'sky']
+  const slides = bigGroups.map(({ c, items }, i) => ({
+    key: `g${c.id}`,
+    tone: tones[i % tones.length],
+    eyebrow: i === 0 ? t('shop.heroEyebrow') : t('shop.slideNew'),
+    title: label(c),
+    text: t('shop.slideText').replace('{n}', items.length),
+    to: `/store/${c.store.slug}?cat=${c.id}`,
+    cta: t('home.shopNow'),
+    images: [items[0], items[Math.min(1, items.length - 1)]].map((p) => sizedImage(p.imageUrls[0], 700)),
+  }))
+  if (slides.length) {
+    slides.splice(1, 0, {
+      key: 'shipping',
+      tone: 'navy',
+      eyebrow: 'JIBI',
+      title: t('shop.slideShippingTitle'),
+      text: t('shop.slideShippingText'),
+      to: firstDeptLink,
+      cta: t('home.shopNow'),
+      images: slides[0].images.slice(0, 1),
+    })
+  }
 
   const matches = (p) => !query || `${allProductNames(p)} ${p.description || ''}`.toLowerCase().includes(query)
   const feed = products.filter(matches).slice().sort((a, b) => b.id - a.id).slice(0, query ? 120 : 20)
@@ -121,6 +153,7 @@ export default function Home() {
                 <div className="shop-card-placeholder">{t('storePage.noImage')}</div>
               )}
               {isDraft ? <span className="shop-tag draft">{t('shop.draft')}</span> : <span className="shop-tag">{t('shop.new')}</span>}
+              <WishHeart product={p} storeSlug={p.store.slug} />
             </Link>
             <div className="shop-card-body">
               <Link to={link} className="shop-card-name" onClick={handleProductNavigate}>{productName(p, lang)}</Link>
@@ -159,15 +192,7 @@ export default function Home() {
 
   return (
     <div className="home">
-      <section className="shop-hero">
-        <div className="shop-hero-copy">
-          <small>{t('shop.heroEyebrow')}</small>
-          <h1>{t('shop.heroTitle')}</h1>
-          <p>{t('shop.heroSubtitle')}</p>
-          {firstDept && <Link to={`/store/${firstDept.slug}`} className="shop-hero-btn">{t('home.shopNow')}</Link>}
-        </div>
-        {heroImages.map((src) => <img key={src} src={src} alt="" className="shop-hero-img" />)}
-      </section>
+      <HeroCarousel slides={slides} />
 
       {leafCircles.length > 0 && (
         <section className="shop-circles" aria-label={t('home.shopByCategory')}>
