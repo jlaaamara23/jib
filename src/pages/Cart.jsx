@@ -80,6 +80,16 @@ export default function Cart() {
   const [paymentDone, setPaymentDone] = useState(false)
   const [paidWithCard, setPaidWithCard] = useState(false)
   const [phoneInput, setPhoneInput] = useState('')
+  // Delivery details, remembered on this device for the next order.
+  const [address, setAddress] = useState(() => {
+    try { return { name: '', city: '', address: '', notes: '', ...JSON.parse(localStorage.getItem('jibi-address') || '{}') } } catch { return { name: '', city: '', address: '', notes: '' } }
+  })
+  const setAddressField = (k) => (e) => {
+    const next = { ...address, [k]: e.target.value }
+    setAddress(next)
+    try { localStorage.setItem('jibi-address', JSON.stringify(next)) } catch { /* private mode */ }
+  }
+  const hasAddress = Boolean(address.name.trim() && address.city.trim() && address.address.trim())
 
   const MIN_ORDER = 80
   // Delivery is 50 ₪ per checkout, free from 500 ₪ (the backend accepts only these values).
@@ -120,10 +130,17 @@ export default function Cart() {
   const hasValidPhone = /^\+?\d{9,15}$/.test(normalizedPhoneDigits)
 
   const ensurePhoneBeforeOrder = () => {
-    if (hasValidPhone) return true
-    setError('Please enter a valid phone number (9-15 digits) before placing the order.')
-    return false
+    if (!hasValidPhone) {
+      setError('Please enter a valid phone number (9-15 digits) before placing the order.')
+      return false
+    }
+    if (!hasAddress) {
+      setError(t('cart.addressRequired'))
+      return false
+    }
+    return true
   }
+  const shipping = () => ({ name: address.name.trim(), phone: normalizedPhoneDigits, city: address.city.trim(), address: address.address.trim(), notes: address.notes.trim() || undefined })
 
   const placeOrdersOnly = async () => {
     if (Object.keys(byStore).length === 0) return
@@ -135,7 +152,7 @@ export default function Cart() {
       for (const [n, sid] of storeIds.entries()) {
         const storeItems = byStore[sid].items
         const itemsPayload = storeItems.map((i) => ({ productId: i.id, quantity: i.quantity, size: i.size || undefined, color: i.color || undefined }))
-        await createOrder(Number(sid), itemsPayload, n === 0 ? shippingFee : undefined)
+        await createOrder(Number(sid), itemsPayload, n === 0 ? shippingFee : undefined, shipping())
       }
       clearCart()
       setPaymentDone(true)
@@ -157,7 +174,7 @@ export default function Cart() {
       for (const [n, sid] of storeIds.entries()) {
         const storeItems = byStore[sid].items
         const itemsPayload = storeItems.map((i) => ({ productId: i.id, quantity: i.quantity, size: i.size || undefined, color: i.color || undefined }))
-        const res = await createOrder(Number(sid), itemsPayload, n === 0 ? shippingFee : undefined)
+        const res = await createOrder(Number(sid), itemsPayload, n === 0 ? shippingFee : undefined, shipping())
         ids.push(res.id)
       }
       setOrderIds(ids)
@@ -250,6 +267,17 @@ export default function Cart() {
         </div>
       </section>
 
+      <section className="cart-contact">
+        <h2>{t('cart.deliveryTitle')}</h2>
+        <div className="cart-address-fields">
+          <input className="cart-phone-input" value={address.name} onChange={setAddressField('name')} placeholder={t('cart.fullName')} autoComplete="name" />
+          <input className="cart-phone-input" value={address.city} onChange={setAddressField('city')} placeholder={t('cart.city')} autoComplete="address-level2" />
+          <input className="cart-phone-input" value={address.address} onChange={setAddressField('address')} placeholder={t('cart.street')} autoComplete="street-address" />
+          <input className="cart-phone-input" value={address.notes} onChange={setAddressField('notes')} placeholder={t('cart.deliveryNotes')} />
+        </div>
+        {!hasAddress && <p className="cart-contact-note">{t('cart.addressRequired')}</p>}
+      </section>
+
       <div className="cart-stores">
         {Object.entries(byStore).map(([storeId, { storeName, items: storeItems }]) => (
           <div key={storeId} className="cart-store">
@@ -299,7 +327,7 @@ export default function Cart() {
             <p className="cart-payment-info-sub">{t('cart.paymentNotConfiguredSub')}</p>
           </div>
         ) : null}
-        <button type="button" className="btn btn-primary" onClick={handleProceedToPayment} disabled={loading || !stripePk || !canCheckout || !hasValidPhone}>
+        <button type="button" className="btn btn-primary" onClick={handleProceedToPayment} disabled={loading || !stripePk || !canCheckout || !hasValidPhone || !hasAddress}>
           {loading ? t('cart.preparing') : stripePk ? t('cart.proceedToPayment') : t('cart.proceedToPayment')}
         </button>
         <button type="button" className="btn btn-secondary" onClick={placeOrdersOnly} disabled={loading || !canCheckout || !hasValidPhone}>
