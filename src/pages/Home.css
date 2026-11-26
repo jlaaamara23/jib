@@ -589,3 +589,15 @@
   object-fit: contain;
   background: #fff;
 }
+
+/* Jewelry showcase band */
+.shop-showcase {
+  margin: 2rem 0 1rem;
+  padding: 1rem 1rem 1.25rem;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, #fbf3e4, #f7ead2);
+}
+
+.shop-showcase .shop-section-head {
+  margin-top: 0;
+}

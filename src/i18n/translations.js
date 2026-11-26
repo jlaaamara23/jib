@@ -8,6 +8,7 @@ export const translations = {
       hint: 'Open a category to see its products. There you can edit price, sizes, colours and stock (saving keeps a product as a draft), and select drafts to publish them.',
     },
     shop: {
+      jewelryShowcase: 'Jewelry sets & necklaces',
       slideNew: 'JUST IN',
       slideText: '{n} styles, new every week',
       slideShippingTitle: 'Free delivery from ₪500',
@@ -473,6 +474,7 @@ export const translations = {
       hint: 'פתח קטגוריה כדי לראות את המוצרים שלה. שם ניתן לערוך מחיר, מידות, צבעים ומלאי (השמירה משאירה את המוצר כטיוטה), ולבחור טיוטות כדי לפרסם אותן.',
     },
     shop: {
+      jewelryShowcase: 'סטים ושרשראות',
       slideNew: 'חדש באתר',
       slideText: '{n} דגמים, חדשים כל שבוע',
       slideShippingTitle: 'משלוח חינם מעל ₪500',
@@ -938,6 +940,7 @@ export const translations = {
       hint: 'افتح فئة لرؤية منتجاتها. هناك يمكنك تعديل السعر والمقاسات والألوان والمخزون (الحفظ يُبقي المنتج كمسودة)، وتحديد المسودات لنشرها.',
     },
     shop: {
+      jewelryShowcase: 'أطقم وسناسل',
       slideNew: 'جديد',
       slideText: '{n} موديل، جديد كل أسبوع',
       slideShippingTitle: 'توصيل مجاني فوق ₪500',
