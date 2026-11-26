@@ -133,9 +133,9 @@ export default function Home() {
 
   const handleProductNavigate = () => saveScrollPosition('/', '')
 
-  const productGrid = (
+  const renderGrid = (list) => (
     <div className="shop-grid">
-      {feed.map((p) => {
+      {list.map((p) => {
         const imageUrl = productImage(p)
         const link = `/product/${p.id}?store=${encodeURIComponent(p.store.slug)}`
         const isDraft = p.status === 'DRAFT'
@@ -177,6 +177,13 @@ export default function Home() {
       })}
     </div>
   )
+  const productGrid = renderGrid(feed)
+
+  // Showcase: the jewelry sets and necklaces, newest first.
+  const jewelryCat = categories.find((c) => c.name === 'acc_jewelry_sets')
+  const jewelry = jewelryCat
+    ? products.filter((p) => p.categoryId === jewelryCat.id && p.status !== 'DRAFT' && p.imageUrls?.length).sort((a, b) => b.id - a.id).slice(0, 8)
+    : []
 
   if (query) {
     return (
@@ -220,6 +227,16 @@ export default function Home() {
               <span>{label(c)}<small>{t('shop.models').replace('{n}', items.length)}</small></span>
             </Link>
           ))}
+        </section>
+      )}
+
+      {jewelry.length >= 4 && (
+        <section className="shop-showcase">
+          <div className="shop-section-head">
+            <h2>✨ {t('shop.jewelryShowcase')}</h2>
+            <Link to={`/store/${jewelryCat.store.slug}?cat=${jewelryCat.id}`}>{t('shop.seeAll')} ←</Link>
+          </div>
+          {renderGrid(jewelry)}
         </section>
       )}
 
